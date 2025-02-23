@@ -2,16 +2,24 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { getColleges } from "../api";
 import { Entry } from "../types";
+import RankingModal from "../components/RankingModal";
 
 function Home() {
-    const [colleges, setColleges] = useState<Entry[]>([]);
+    const [entries, setEntries] = useState<Entry[]>([]);
+    const [modalOpen, setModalOpen] = useState(false);
+
 
     useEffect(() => {
         getColleges().then((data) => {
             const sorted = data.sort((a, b) => b.score - a.score || a.name.localeCompare(b.name));
-            setColleges(sorted);
+            setEntries(sorted);
         });
     }, []);
+
+    const rankStuff = () => {
+        if (entries.length < 2) return;
+        setModalOpen(true);
+    };
 
     return (
         <div className="flex flex-col w-full bg-gray-100 min-h-screen">
@@ -22,12 +30,25 @@ function Home() {
                 </Link>
             </div>
 
-            <div className="mt-12 flex flex-col items-center w-full">
-                {colleges.length === 0 ? (
+            <div className="flex flex-col items-center w-full my-10">
+                <div onClick={rankStuff} className="bg-gradient-to-r from-blue-500 to-purple-500 text-white text-4xl font-semibold p-4 rounded-lg shadow-lg cursor-pointer hover:from-blue-600 hover:to-purple-600 transition duration-300 ease-in-out active:scale-95">
+                    Rank Colleges
+                </div>
+            </div>
+
+            {modalOpen && (
+                <RankingModal
+                    onClose={() => setModalOpen(false)}
+                    entries={entries}
+                />
+            )}
+
+            <div className="mt-8 flex flex-col items-center w-full">
+                {entries.length === 0 ? (
                     <p>Loading...</p>
                 ) : (
                     <div className="flex flex-col items-center w-full space-y-2">
-                        {colleges.map((college, index) => (
+                        {entries.map((college, index) => (
                             <div key={college.name} className="bg-white rounded-xl p-4 flex flex-row justify-between items-center space-x-4 w-full max-w-xl shadow-xs">
                                 <div className="flex flex-row gap-4 text-xl font-medium">
                                     <span className="">{index + 1}</span>

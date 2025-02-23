@@ -4,6 +4,7 @@ export type EntryData = {
 }
 
 export type Entry = {
+    id: string;
     name: string;
     image?: string;
     score: number;
