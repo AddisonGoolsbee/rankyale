@@ -1,4 +1,5 @@
 .vite
+src/data
 
 # Logs
 logs
