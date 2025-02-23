@@ -1,13 +1,11 @@
-import { collection, addDoc, getDocs } from "firebase/firestore";
+import { collection, getDoc, doc } from "firebase/firestore";
 import { db } from "./firebase";
+import { Entry } from "./types";
 
-const usersCollection = collection(db, "users");
+export const getColleges = async (): Promise<Entry[]> => {
+    const collegesDoc = await getDoc(doc(collection(db, "categories"), "colleges"));
+    if (!collegesDoc.exists()) return [];
 
-export const addUser = async (netId: string) => {
-    return await addDoc(usersCollection, { netId: netId });
-};
-
-export const getUsers = async () => {
-    const snapshot = await getDocs(usersCollection);
-    return snapshot.docs.map(doc => ({ id: doc.id, netId: doc.data().netId as string }));
+    const data = collegesDoc.data().data as Entry[]; // Extract array from Firestore document
+    return data;
 };

@@ -1,49 +1,46 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { addUser, getUsers } from "../api";
+import { getColleges } from "../api";
+import { Entry } from "../types";
 
-function App() {
-    const [users, setUsers] = useState<{ id: string; netId: string }[]>([]);
-    const [netId, setNetId] = useState("");
+function Home() {
+    const [colleges, setColleges] = useState<Entry[]>([]);
 
     useEffect(() => {
-        getUsers().then(setUsers);
+        getColleges().then((data) => {
+            const sorted = data.sort((a, b) => b.score - a.score || a.name.localeCompare(b.name));
+            setColleges(sorted);
+        });
     }, []);
 
-    const handleAddUser = async () => {
-        if (netId.trim()) {
-            await addUser(netId);
-            setUsers(await getUsers()); // Refresh user list
-            setNetId(""); // Clear input
-        }
-    };
-
     return (
-        <div className="p-4">
-            <h1 className="text-xl font-bold">Users List</h1>
-            <Link to="/about" className="text-blue-500 underline">
-                Go to About Page
-            </Link>
+        <div className="flex flex-col w-full bg-gray-100 min-h-screen">
+            <div className="flex items-center w-screen justify-between p-4 pr-10">
+                <div className="text-3xl font-bold">College Rankings</div>
+                <Link to="/about" className="underline">
+                    About
+                </Link>
+            </div>
 
-            <input
-                type="text"
-                placeholder="Enter netId"
-                value={netId}
-                onChange={(e) => setNetId(e.target.value)}
-                className="border p-2 m-2"
-            />
-            <button onClick={handleAddUser} className="bg-blue-500 text-white px-4 py-2">
-                Add User
-            </button>
-
-            <h2 className="mt-4">Users:</h2>
-            <ul>
-                {users.map((user) => (
-                    <li key={user.id}>{user.netId}</li>
-                ))}
-            </ul>
+            <div className="mt-12 flex flex-col items-center w-full">
+                {colleges.length === 0 ? (
+                    <p>Loading...</p>
+                ) : (
+                    <div className="flex flex-col items-center w-full space-y-2">
+                        {colleges.map((college, index) => (
+                            <div key={college.name} className="bg-white rounded-xl p-4 flex flex-row justify-between items-center space-x-4 w-full max-w-xl shadow-xs">
+                                <div className="flex flex-row gap-4 text-xl font-medium">
+                                    <span className="">{index + 1}</span>
+                                    <span className="">{college.name}</span>
+                                </div>
+                                <img src={college.image} alt={college.name} className="w-10 h-10 object-contain" />
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </div>
         </div>
     );
 }
 
-export default App;
+export default Home;
