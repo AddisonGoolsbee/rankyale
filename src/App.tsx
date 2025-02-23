@@ -1,5 +1,8 @@
 import { useEffect, useState } from "react";
 import { addUser, getUsers } from "./api";
+import { Routes, Route } from "react-router-dom";
+import Home from "./pages/Home";
+import About from "./pages/About";
 
 function App() {
   const [users, setUsers] = useState<{ id: string; netId: string }[]>([]);
@@ -16,6 +19,13 @@ function App() {
       setNetId(""); // Clear input
     }
   };
+
+  return (
+    <Routes>
+      <Route path="/" element={<Home />} />
+      <Route path="/about" element={<About />} />
+    </Routes>
+  );
 
   return (
     <div className="p-4">
