@@ -1,35 +1,45 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useEffect, useState } from "react";
+import { addUser, getUsers } from "./api";
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [users, setUsers] = useState<{ id: string; netId: string }[]>([]);
+  const [netId, setNetId] = useState("");
+
+  useEffect(() => {
+    getUsers().then(setUsers);
+  }, []);
+
+  const handleAddUser = async () => {
+    if (netId.trim()) {
+      await addUser(netId);
+      setUsers(await getUsers()); // Refresh user list
+      setNetId(""); // Clear input
+    }
+  };
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1 className="border-3">Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    <div className="p-4">
+      <h1 className="text-xl font-bold">Users List</h1>
+
+      <input
+        type="text"
+        placeholder="Enter netId"
+        value={netId}
+        onChange={(e) => setNetId(e.target.value)}
+        className="border p-2 m-2"
+      />
+      <button onClick={handleAddUser} className="bg-blue-500 text-white px-4 py-2">
+        Add User
+      </button>
+
+      <h2 className="mt-4">Users:</h2>
+      <ul>
+        {users.map((user) => (
+          <li key={user.id}>{user.netId}</li>
+        ))}
+      </ul>
+    </div>
+  );
 }
 
-export default App
+export default App;
