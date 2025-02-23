@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { getColleges } from "../api";
+import { getCollection } from "../api";
 import { Entry } from "../types";
 import RankingModal from "../components/RankingModal";
 
@@ -10,7 +10,8 @@ function Home() {
 
 
     useEffect(() => {
-        getColleges().then((data) => {
+        getCollection("colleges").then((data) => {
+            console.log("Fetched data:", data);
             const sorted = data.sort((a, b) => b.score - a.score || a.name.localeCompare(b.name));
             setEntries(sorted);
         });
@@ -40,6 +41,7 @@ function Home() {
                 <RankingModal
                     onClose={() => setModalOpen(false)}
                     entries={entries}
+                    setEntries={setEntries}
                 />
             )}
 
@@ -53,6 +55,7 @@ function Home() {
                                 <div className="flex flex-row gap-4 text-xl font-medium">
                                     <span className="">{index + 1}</span>
                                     <span className="">{college.name}</span>
+                                    <span className="text-gray-500 text-base self-center">score: {Math.floor(college.score)}</span>
                                 </div>
                                 <img src={college.image} alt={college.name} className="w-10 h-10 object-contain" />
                             </div>

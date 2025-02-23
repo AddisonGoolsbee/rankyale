@@ -1,37 +1,32 @@
-import { collection, getDoc, doc, updateDoc } from "firebase/firestore";
+import { collection, getDoc, doc, updateDoc, getDocs } from "firebase/firestore";
 import { db } from "./firebase";
 import { Entry } from "./types";
 
-export const getColleges = async (): Promise<Entry[]> => {
-    const collegesDoc = await getDoc(doc(collection(db, "categories"), "colleges"));
-    if (!collegesDoc.exists()) return [];
-
-    const data = collegesDoc.data().data as Entry[]; // Extract array from Firestore document
-    return data;
-};
-
-export const updateCollegeScore = async (collegeName: string, newScore: number): Promise<boolean> => {
-    const collegesRef = doc(db, "categories", "colleges");
+export const getCollection = async (collectionName: string): Promise<Entry[]> => {
+    const entriesRef = collection(db, "categories", collectionName, "entries");
 
     try {
-        const collegesDoc = await getDoc(collegesRef);
-        if (!collegesDoc.exists()) {
-            console.error("Colleges document does not exist.");
+        const querySnapshot = await getDocs(entriesRef);
+        return querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() } as Entry));
+    } catch (error) {
+        console.error(`Error retrieving collection ${collectionName}:`, error);
+        return [];
+    }
+};
+
+export const updateEntryScore = async (collectionName: string, id: string, newScore: number): Promise<boolean> => {
+    const collectionRef = doc(db, "categories", collectionName, "entries", id);
+
+    try {
+        const collectionDoc = await getDoc(collectionRef);
+        if (!collectionDoc.exists()) {
+            console.error(`No college found with ID: ${id}`);
             return false;
         }
 
-        // Extract existing colleges
-        const colleges = collegesDoc.data().data as Entry[];
+        await updateDoc(collectionRef, { score: newScore });
 
-        // Find the college entry to update
-        const updatedColleges = colleges.map((college) =>
-            college.name === collegeName ? { ...college, score: newScore } : college
-        );
-
-        // Update Firestore
-        await updateDoc(collegesRef, { data: updatedColleges });
-
-        console.log(`Updated ${collegeName}'s score to ${newScore}`);
+        console.log(`Updated college ${id}'s score to ${newScore}`);
         return true;
     } catch (error) {
         console.error("Error updating college score:", error);

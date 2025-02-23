@@ -1,13 +1,15 @@
 import { Entry } from "../types";
 import { X } from "lucide-react";
 import { useState, useEffect } from "react";
+import { updateEntryScore } from "../api";
 
 type RankModalProps = {
     onClose: () => void;
     entries: Entry[];
+    setEntries: React.Dispatch<React.SetStateAction<Entry[]>>;
 };
 
-const RankingModal = ({ onClose, entries }: RankModalProps) => {
+const RankingModal = ({ onClose, entries, setEntries }: RankModalProps) => {
     const NUM_RANKINGS = 10;
     const K = 32;
 
@@ -39,9 +41,15 @@ const RankingModal = ({ onClose, entries }: RankModalProps) => {
             // No change in scores
         }
 
-        // Update the scores
-        entries[selectedEntries.entry1].score = score1;
-        entries[selectedEntries.entry2].score = score2;
+        setEntries((prevEntries) => {
+            const updatedEntries = [...prevEntries];
+            updatedEntries[selectedEntries.entry1] = { ...entry1, score: score1 };
+            updatedEntries[selectedEntries.entry2] = { ...entry2, score: score2 };
+            return updatedEntries;
+        });
+
+        updateEntryScore("colleges", entry1.id, score1);
+        updateEntryScore("colleges", entry2.id, score2);
 
         setCurrentPairIndex(currentPairIndex + 1);
         if (currentPairIndex + 1 >= NUM_RANKINGS) {
@@ -103,7 +111,7 @@ const RankingModal = ({ onClose, entries }: RankModalProps) => {
                     <Choice entry={entries[rankingPairs[currentPairIndex]?.entry2]} onClick={() => handleVote(rankingPairs[currentPairIndex], 0)} />
                 </div>
 
-                <button onClick={() => handleVote(rankingPairs[currentPairIndex], 2)} className="px-4 py-2 bg-[#bcbcbc] text-white rounded hover:bg-gray-400 duration-200 transition">
+                <button onClick={() => handleVote(rankingPairs[currentPairIndex], 2)} className="px-4 py-3 bg-gray-400 text-white text-lg rounded-lg hover:bg-gray-500 duration-200 transition">
                     I'm indifferent
                 </button>
             </div>

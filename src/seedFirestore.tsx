@@ -1,28 +1,30 @@
 // src/seedFirestore.tsx
 import { db } from "./firebase";
 import { collection, doc, setDoc } from "firebase/firestore";
-import { Entry, EntryData } from "./types";
+import { EntryData } from "./types";
 
-const loadColleges = async (): Promise<EntryData[]> => {
-    const response = await fetch("/src/data/colleges.json");
+const loadCollection = async (collectionName: string): Promise<EntryData[]> => {
+    const response = await fetch(`/src/data/${collectionName}.json`);
     if (!response.ok) {
-        throw new Error("Failed to load colleges");
+        throw new Error("Failed to load data from JSON file");
     }
     return (await response.json() as EntryData[])
 }
 
 const seedFirestore = async () => {
-    const colleges = await loadColleges();
-    const categoriesRef = collection(db, "categories");
-    const collegesRef = doc(categoriesRef, "colleges");
+    const collectionName = "colleges";
+    const colleges = await loadCollection(collectionName);
 
-    const formattedColleges: Entry[] = colleges.map((college) => ({
-        ...college,
-        score: 1000,
-        popularity: 1000,
-    }));
+    const entriesRef = collection(db, "categories", collectionName, "entries");
 
-    await setDoc(collegesRef, { data: formattedColleges });
+    for (const college of colleges) {
+        const entryRef = doc(entriesRef);
+        await setDoc(entryRef, {
+            ...college,
+            score: 1000,
+            popularity: 1000,
+        });
+    }
 
     console.log("Firestore seeded successfully!");
 };
