@@ -1,7 +1,8 @@
 import { Entry } from "../types";
 import { X } from "lucide-react";
 import { useState, useEffect } from "react";
-import { updateEntryScore } from "../api";
+import { functions } from "../firebase";
+import { httpsCallable } from "firebase/functions";
 
 type RankModalProps = {
     onClose: () => void;
@@ -11,12 +12,13 @@ type RankModalProps = {
 
 const RankingModal = ({ onClose, entries, setEntries }: RankModalProps) => {
     const NUM_RANKINGS = 10;
+    const updateEloRating = httpsCallable(functions, "updateEloRating");
     const K = 32;
 
     const [rankingPairs, setRankingPairs] = useState<{ entry1: number; entry2: number }[]>([]);
     const [currentPairIndex, setCurrentPairIndex] = useState(0);
 
-    const handleVote = (selectedEntries: { entry1: number; entry2: number }, mode: number) => {
+    const handleVote = async (selectedEntries: { entry1: number; entry2: number }, mode: number) => {
         // mode 0 = entry1, mode 1 = entry2, mode 2 = indifferent
         const entry1 = entries[selectedEntries.entry1];
         const entry2 = entries[selectedEntries.entry2];
@@ -48,8 +50,18 @@ const RankingModal = ({ onClose, entries, setEntries }: RankModalProps) => {
             return updatedEntries;
         });
 
-        updateEntryScore("colleges", entry1.id, score1);
-        updateEntryScore("colleges", entry2.id, score2);
+        // update on the backend where it's secure
+        try {
+            const response = await updateEloRating({
+                collectionName: "colleges",
+                entry1Id: entry1.id,
+                entry2Id: entry2.id,
+                mode: mode,
+            });
+            console.log("Response:", response.data);
+        } catch (error) {
+            console.error("Error calling updateEloRating:", error);
+        }
 
         setCurrentPairIndex(currentPairIndex + 1);
         if (currentPairIndex + 1 >= NUM_RANKINGS) {

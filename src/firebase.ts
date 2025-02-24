@@ -1,6 +1,7 @@
 import { initializeApp } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
-import { getFirestore } from "firebase/firestore";
+import { getFirestore, connectFirestoreEmulator } from "firebase/firestore";
+import { getFunctions, connectFunctionsEmulator } from "firebase/functions";
 
 const firebaseConfig = {
     apiKey: "AIzaSyD5ALf922ZonYrURoAECZT_OWMPJwR1h8E",
@@ -12,8 +13,12 @@ const firebaseConfig = {
     measurementId: "G-L3PLKNTLJ1"
 };
 
-// Initialize Firebase
 const app = initializeApp(firebaseConfig);
 export const analytics = getAnalytics(app);
 export const db = getFirestore(app);
+export const functions = getFunctions(app);
 
+if (process.env.NODE_ENV === "development") {
+    connectFunctionsEmulator(functions, "127.0.0.1", 5001);
+    connectFirestoreEmulator(db, "127.0.0.1", 8080);
+}
