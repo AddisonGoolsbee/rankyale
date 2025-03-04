@@ -1,3 +1,5 @@
+---- UNDER CONSTRUCTION ----
+
 # RankYale
 
 A toxic website for ranking people, clubs, professors, etc. at Yale Universtiy. Made by and for Yale students
