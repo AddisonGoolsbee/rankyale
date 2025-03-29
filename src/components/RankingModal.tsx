@@ -120,7 +120,7 @@ const RankingModal = ({ onClose, entries, setEntries }: RankModalProps) => {
 
                 <div className="flex justify-center gap-12 flex-row mx-8 my-6">
                     <Choice entry={entries[rankingPairs[currentPairIndex]?.entry1]} onClick={() => handleVote(rankingPairs[currentPairIndex], 0)} />
-                    <Choice entry={entries[rankingPairs[currentPairIndex]?.entry2]} onClick={() => handleVote(rankingPairs[currentPairIndex], 0)} />
+                    <Choice entry={entries[rankingPairs[currentPairIndex]?.entry2]} onClick={() => handleVote(rankingPairs[currentPairIndex], 1)} />
                 </div>
 
                 <button onClick={() => handleVote(rankingPairs[currentPairIndex], 2)} className="px-4 py-3 bg-gray-400 text-white text-lg rounded-lg hover:bg-gray-500 duration-200 transition">
