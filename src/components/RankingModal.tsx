@@ -12,6 +12,8 @@ type RankModalProps = {
   entries: Entry[];
   setEntries: React.Dispatch<React.SetStateAction<Entry[]>>;
   user: User;
+  collectionName: string;
+  prompt: string;
 };
 
 const RankingModal = ({
@@ -19,6 +21,8 @@ const RankingModal = ({
   entries,
   setEntries,
   user,
+  collectionName,
+  prompt,
 }: RankModalProps) => {
   const NUM_RANKINGS = 10;
   const updateEloRating = httpsCallable(functions, "updateEloRating");
@@ -69,7 +73,7 @@ const RankingModal = ({
     // update on the backend where it's secure
     try {
       await updateEloRating({
-        collectionName: "colleges",
+        collectionName: collectionName,
         entry1Id: entry1.id,
         entry2Id: entry2.id,
         mode: mode,
@@ -92,7 +96,7 @@ const RankingModal = ({
         query(
           collection(db, "votes"),
           where("uid", "==", user.uid),
-          where("collection", "==", "colleges")
+          where("collection", "==", collectionName)
         )
       );
 
@@ -134,7 +138,7 @@ const RankingModal = ({
     };
 
     fetchVotesAndGeneratePairs();
-  }, [user, entries]);
+  }, [user, entries, collectionName]);
 
   const Choice = ({
     entry,
@@ -175,7 +179,7 @@ const RankingModal = ({
           <X size={24} />
         </button>
 
-        <h2 className="text-3xl font-semibold">Which dining hall is better?</h2>
+        <h2 className="text-3xl font-semibold">{prompt}</h2>
         <div className="text-gray-500 my-2">
           {NUM_RANKINGS - currentPairIndex} more to go
         </div>

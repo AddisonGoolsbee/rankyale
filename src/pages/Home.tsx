@@ -18,10 +18,12 @@ const auth = getAuth();
 
 function Home() {
   const [entries, setEntries] = useState<Entry[]>([]);
+  const [entriesSubset, setEntriesSubset] = useState<Entry[]>([]); // subset of entries based on selected year, not present in non-student categories
   const [modalOpen, setModalOpen] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const [classYear, setClassYear] = useState<number | null>(null);
   const [authChecked, setAuthChecked] = useState(false);
+  const [selectedYear, setSelectedYear] = useState<string>("All");
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (u) => {
@@ -50,14 +52,34 @@ function Home() {
       };
       fetchClassYear();
 
-      getCollection("colleges").then((data) => {
+      getCollection("students").then((data) => {
         const sorted = data.sort(
           (a, b) => b.score - a.score || a.name.localeCompare(b.name)
         );
         setEntries(sorted);
+        setEntriesSubset(sorted);
       });
     }
   }, [user]);
+
+  const updateEntriesSubset = (year: string) => {
+    setSelectedYear(year);
+    if (year === "All") {
+      setEntriesSubset(entries);
+    } else {
+      const yearMap: { [key: string]: number } = {
+        Freshmen: 2028,
+        Sophomores: 2027,
+        Juniors: 2026,
+        Seniors: 2025,
+      };
+      const numericYear = yearMap[year];
+      const filtered = entries.filter(
+        (entry) => entry.class_year === numericYear
+      );
+      setEntriesSubset(filtered);
+    }
+  };
 
   const handleLogin = async () => {
     const provider = new GoogleAuthProvider();
@@ -102,7 +124,7 @@ function Home() {
   return (
     <div className="flex flex-col w-full bg-gray-100 min-h-screen">
       <div className="flex items-center w-screen justify-between p-4 pr-10">
-        <div className="text-3xl font-bold">College Rankings</div>
+        <div className="text-3xl font-bold">RankYale</div>
         <div className="flex items-center gap-6">
           <Link to="/about" className="underline">
             About
@@ -117,43 +139,69 @@ function Home() {
       </div>
 
       <div className="flex flex-col items-center w-full my-10">
+        <h1 className="text-5xl font-bold mb-8 text-center bg-clip-text">
+          Who is the Most Popular Student?
+        </h1>
+        <div className="flex bg-white rounded-lg shadow-md p-1 mb-8">
+          {["All", "Freshmen", "Sophomores", "Juniors", "Seniors"].map(
+            (year) => (
+              <button
+                key={year}
+                onClick={() => updateEntriesSubset(year)}
+                className={`px-6 py-2 rounded-md transition-colors duration-200 ${
+                  selectedYear === year
+                    ? "bg-blue-500 text-white"
+                    : "text-gray-600 hover:bg-gray-100"
+                }`}
+              >
+                {year}
+              </button>
+            )
+          )}
+        </div>
         <div
           onClick={rankStuff}
           className="bg-gradient-to-r from-blue-500 to-purple-500 text-white text-4xl font-semibold p-4 rounded-lg shadow-lg cursor-pointer hover:from-blue-600 hover:to-purple-600 transition duration-300 ease-in-out active:scale-95"
         >
-          Rank Colleges
+          Rank People
         </div>
       </div>
 
       {modalOpen && (
         <RankingModal
           onClose={() => setModalOpen(false)}
-          entries={entries}
-          setEntries={setEntries}
+          entries={entriesSubset}
+          setEntries={setEntriesSubset}
           user={user}
+          collectionName="students"
+          prompt="Who is more popular?"
         />
       )}
 
       <div className="mt-8 flex flex-col items-center w-full">
-        {entries.length === 0 ? (
+        {entriesSubset.length === 0 ? (
           <p>Loading...</p>
         ) : (
           <div className="flex flex-col items-center w-full space-y-2">
-            {entries.map((college, index) => (
+            {entriesSubset.slice(0, 100).map((entry, index) => (
               <div
-                key={college.name}
+                key={entry.email ?? entry.name}
                 className="bg-white rounded-xl p-4 flex flex-row justify-between items-center space-x-4 w-full max-w-xl shadow-xs"
               >
                 <div className="flex flex-row gap-4 text-xl font-medium">
                   <span>{index + 1}</span>
-                  <span>{college.name}</span>
+                  <span>{entry.name}</span>
                   <span className="text-gray-500 text-base self-center">
-                    score: {Math.floor(college.score)}
+                    score: {Math.floor(entry.score)}
                   </span>
                 </div>
                 <img
-                  src={college.image}
-                  alt={college.name}
+                  src={
+                    entry.image === "assets/defaultStudent.avif"
+                      ? "../assets/defaultStudent.avif"
+                      : entry.image
+                  }
+                  alt={entry.name}
                   className="w-10 h-10 object-contain"
                 />
               </div>

@@ -3,9 +3,22 @@ import { readFile } from "fs/promises";
 import { join } from "path";
 import { fileURLToPath } from "url";
 import { collection, doc, getDocs, writeBatch } from "firebase/firestore";
+import readline from 'readline';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = join(__filename, "..", "..", "..");
+
+// Create readline interface for user input
+const rl = readline.createInterface({
+  input: process.stdin,
+  output: process.stdout
+});
+
+const question = (query: string): Promise<string> => {
+  return new Promise((resolve) => {
+    rl.question(query, resolve);
+  });
+};
 
 const loadCollection = async (collectionName: string) => {
   console.log(`Loading ${collectionName} from JSON file...`);
@@ -17,7 +30,27 @@ const loadCollection = async (collectionName: string) => {
 };
 
 const seedFirestore = async (collectionName: string) => {
-  console.log(`Starting to seed ${collectionName}...`);
+  // Check if we're in development mode
+  if (process.env.NODE_ENV !== "development") {
+    console.error("⚠️  WARNING: Not in development mode!");
+    console.error("This script should only be run against the emulator.");
+    console.error("Set NODE_ENV=development before running this script.");
+    process.exit(1);
+  }
+
+  // Confirm with user before proceeding
+  console.log("\n🔍 Safety Check:");
+  console.log("1. You are running this against the Firebase emulator");
+  console.log("2. The emulator is running on localhost:8080");
+  console.log("3. This will write to the emulator database, not production");
+  
+  const answer = await question("\nDo you want to proceed? (yes/no): ");
+  if (answer.toLowerCase() !== "yes") {
+    console.log("Operation cancelled.");
+    process.exit(0);
+  }
+
+  console.log(`\nStarting to seed ${collectionName}...`);
   const entries = await loadCollection(collectionName);
   const entriesRef = collection(db, "categories", collectionName, "entries");
 
@@ -58,11 +91,13 @@ const seedFirestore = async (collectionName: string) => {
   }
 
   console.log("Firestore seeded successfully!");
+  rl.close();
   process.exit(0);
 };
 
 console.log("Script starting...");
 seedFirestore("students").catch(error => {
   console.error("Error:", error);
+  rl.close();
   process.exit(1);
 }); 
