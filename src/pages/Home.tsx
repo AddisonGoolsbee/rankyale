@@ -199,15 +199,15 @@ function Home() {
         />
       )}
 
-      <div className="mt-8 flex flex-col items-center w-full">
+      <div className="flex flex-col items-center w-full">
         {entriesSubset.length === 0 ? (
           <p>Loading...</p>
         ) : (
-          <div className="flex flex-col items-center w-full space-y-2">
+          <div className="flex flex-col items-center w-full space-y-3">
             {entriesSubset.slice(0, 100).map((entry, index) => (
               <div
                 key={entry.email ?? entry.name}
-                className="bg-white rounded-xl p-4 flex flex-row justify-between items-center space-x-4 w-full max-w-xl shadow-xs"
+                className="bg-white rounded-xl py-2 px-4 flex flex-row justify-between items-center space-x-4 w-full max-w-xl shadow-xs"
               >
                 <div className="flex flex-row gap-4 text-xl font-medium">
                   <span>{index + 1}</span>
@@ -219,11 +219,11 @@ function Home() {
                 <img
                   src={
                     entry.image === "assets/defaultStudent.avif"
-                      ? "../assets/defaultStudent.avif"
+                      ? "src/assets/defaultStudent.png"
                       : entry.image
                   }
                   alt={entry.name}
-                  className="w-10 h-10 object-contain"
+                  className="h-16 object-contain rounded-md"
                 />
               </div>
             ))}

@@ -155,7 +155,11 @@ const RankingModal = ({
         {rankingPairs.length !== 0 && (
           <>
             <img
-              src={entry.image}
+              src={
+                entry.image === "assets/defaultStudent.avif"
+                  ? "src/assets/defaultStudent.png"
+                  : entry.image
+              }
               alt={entry.name}
               className="w-32 sm:w-48 h-32 sm:h-48 object-contain mb-4"
             />
