@@ -1,11 +1,11 @@
-import { Entry } from "../types";
+import { Entry } from "../utils/types";
 import { X } from "lucide-react";
 import { useState, useEffect } from "react";
-import { functions } from "../firebase";
+import { functions } from "../utils/firebase";
 import { httpsCallable } from "firebase/functions";
 import { User } from "firebase/auth";
 import { collection, getDocs, query, where } from "firebase/firestore";
-import { db } from "../firebase";
+import { db } from "../utils/firebase";
 
 type RankModalProps = {
   onClose: () => void;
@@ -68,13 +68,12 @@ const RankingModal = ({
 
     // update on the backend where it's secure
     try {
-      const response = await updateEloRating({
+      await updateEloRating({
         collectionName: "colleges",
         entry1Id: entry1.id,
         entry2Id: entry2.id,
         mode: mode,
       });
-      console.log("Response:", response.data);
     } catch (error) {
       console.error("Error calling updateEloRating:", error);
     }
@@ -96,9 +95,6 @@ const RankingModal = ({
           where("collection", "==", "colleges")
         )
       );
-
-      const voteDocs = await getDocs(collection(db, "votes"));
-      voteDocs.forEach((doc) => console.log(doc.id, doc.data()));
 
       const seenPairs = new Set<string>();
       votesSnap.forEach((doc) => {

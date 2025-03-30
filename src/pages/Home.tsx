@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { getCollection } from "../api";
-import { Entry } from "../types";
+import { getCollection } from "../utils/api";
+import { Entry } from "../utils/types";
 import RankingModal from "../components/RankingModal";
 import {
   getAuth,
@@ -12,7 +12,7 @@ import {
   User,
 } from "firebase/auth";
 import { httpsCallable } from "firebase/functions";
-import { functions } from "../firebase";
+import { functions } from "../utils/firebase";
 
 const auth = getAuth();
 
