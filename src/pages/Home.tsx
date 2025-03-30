@@ -141,7 +141,7 @@ function Home() {
   return (
     <div className="flex flex-col w-full bg-gray-100 min-h-screen">
       <div className="flex items-center w-screen justify-between p-4 pr-10">
-        <div className="text-3xl font-bold">RankYale</div>
+        <div className="text-4xl font-bold font-['Knewave'] tracking-wide">RANKYALE</div>
         <div className="flex items-center gap-6">
           <Link to="/about" className="underline">
             About
@@ -178,7 +178,7 @@ function Home() {
         </div>
         <div
           onClick={rankStuff}
-          className={`bg-gradient-to-r from-blue-500 to-purple-500 text-white text-4xl font-semibold p-6 py-4 rounded-2xl shadow-lg transition duration-300 ease-in-out ${
+          className={`font-['Knewave'] tracking-wide bg-gradient-to-r from-blue-500 to-purple-500 text-white text-5xl font-semibold p-6 py-4 rounded-2xl shadow-lg transition duration-300 ease-in-out ${
             selectedYear === "All" || yearMap[selectedYear] === classYear
               ? "cursor-pointer hover:from-blue-600 hover:to-purple-600 active:scale-95"
               : "opacity-50 cursor-not-allowed"
