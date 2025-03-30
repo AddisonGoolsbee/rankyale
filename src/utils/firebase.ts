@@ -1,5 +1,5 @@
 import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
+import { getAnalytics, isSupported } from "firebase/analytics";
 import { getFirestore, connectFirestoreEmulator } from "firebase/firestore";
 import { getFunctions, connectFunctionsEmulator } from "firebase/functions";
 
@@ -14,9 +14,15 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-export const analytics = getAnalytics(app);
 export const db = getFirestore(app);
 export const functions = getFunctions(app);
+
+// Only initialize analytics in browser environments
+let analytics;
+if (typeof window !== 'undefined') {
+    isSupported().then(yes => yes && (analytics = getAnalytics(app)));
+}
+export { analytics };
 
 if (process.env.NODE_ENV === "development") {
     connectFunctionsEmulator(functions, "127.0.0.1", 5001);
