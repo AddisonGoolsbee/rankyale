@@ -25,6 +25,13 @@ function Home() {
   const [authChecked, setAuthChecked] = useState(false);
   const [selectedYear, setSelectedYear] = useState<string>("All");
 
+  const yearMap: { [key: string]: number } = {
+    Freshmen: 2028,
+    Sophomores: 2027,
+    Juniors: 2026,
+    Seniors: 2025,
+  };
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (u) => {
       if (u?.email?.endsWith("@yale.edu")) {
@@ -39,6 +46,13 @@ function Home() {
   }, []);
 
   useEffect(() => {
+    const yearMapReverse = {
+      2028: "Freshmen",
+      2027: "Sophomores",
+      2026: "Juniors",
+      2025: "Seniors",
+    };
+
     if (user) {
       const fetchClassYear = async () => {
         try {
@@ -46,18 +60,27 @@ function Home() {
           const res = await getClassYear();
           const data = res.data as { classYear: number };
           setClassYear(data.classYear);
+          setSelectedYear(
+            yearMapReverse[
+              data.classYear as keyof typeof yearMapReverse
+            ] as string
+          );
+          return data.classYear;
         } catch (err) {
           console.error("Failed to fetch class year:", err);
         }
       };
-      fetchClassYear();
-
-      getCollection("students").then((data) => {
-        const sorted = data.sort(
-          (a, b) => b.score - a.score || a.name.localeCompare(b.name)
-        );
-        setEntries(sorted);
-        setEntriesSubset(sorted);
+      fetchClassYear().then((classYear) => {
+        getCollection("students").then((data) => {
+          const sorted = data.sort(
+            (a, b) => b.score - a.score || a.name.localeCompare(b.name)
+          );
+          setEntries(sorted);
+          const filtered = sorted.filter(
+            (entry) => entry.class_year === classYear
+          );
+          setEntriesSubset(filtered);
+        });
       });
     }
   }, [user]);
@@ -67,12 +90,6 @@ function Home() {
     if (year === "All") {
       setEntriesSubset(entries);
     } else {
-      const yearMap: { [key: string]: number } = {
-        Freshmen: 2028,
-        Sophomores: 2027,
-        Juniors: 2026,
-        Seniors: 2025,
-      };
       const numericYear = yearMap[year];
       const filtered = entries.filter(
         (entry) => entry.class_year === numericYear
@@ -161,9 +178,13 @@ function Home() {
         </div>
         <div
           onClick={rankStuff}
-          className="bg-gradient-to-r from-blue-500 to-purple-500 text-white text-4xl font-semibold p-4 rounded-lg shadow-lg cursor-pointer hover:from-blue-600 hover:to-purple-600 transition duration-300 ease-in-out active:scale-95"
+          className={`bg-gradient-to-r from-blue-500 to-purple-500 text-white text-4xl font-semibold p-6 py-4 rounded-2xl shadow-lg transition duration-300 ease-in-out ${
+            selectedYear === "All" || yearMap[selectedYear] === classYear
+              ? "cursor-pointer hover:from-blue-600 hover:to-purple-600 active:scale-95"
+              : "opacity-50 cursor-not-allowed"
+          }`}
         >
-          Rank People
+          Vote
         </div>
       </div>
 
