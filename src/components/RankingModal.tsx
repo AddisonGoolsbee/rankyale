@@ -150,7 +150,7 @@ const RankingModal = ({
     return (
       <div
         onClick={onClick}
-        className="flex flex-col flex-1 items-center bg-white rounded-lg p-4 shadow-md hover:scale-105 duration:300 transition active:scale-95"
+        className="flex flex-col flex-1 items-center bg-white rounded-lg p-6 shadow-md hover:scale-105 duration:300 transition active:scale-95 "
       >
         {rankingPairs.length !== 0 && (
           <>
@@ -161,7 +161,7 @@ const RankingModal = ({
                   : entry.image
               }
               alt={entry.name}
-              className="w-32 sm:w-48 h-32 sm:h-48 object-contain mb-4"
+              className="h-32 sm:h-56 object-contain mb-4 rounded-lg"
             />
             <span className="text-xl font-semibold">{entry.name}</span>
           </>
@@ -169,6 +169,7 @@ const RankingModal = ({
       </div>
     );
   };
+  console.log(currentPairIndex);
 
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
@@ -198,7 +199,6 @@ const RankingModal = ({
             onClick={() => handleVote(rankingPairs[currentPairIndex], 1)}
           />
         </div>
-
         <button
           onClick={() => handleVote(rankingPairs[currentPairIndex], 2)}
           className="px-4 py-3 bg-gray-400 text-white text-lg rounded-lg hover:bg-gray-500 duration-200 transition"

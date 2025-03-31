@@ -13,6 +13,8 @@ import {
 } from "firebase/auth";
 import { httpsCallable } from "firebase/functions";
 import { functions } from "../utils/firebase";
+import { collection, getDocs, query, where } from "firebase/firestore";
+import { db } from "../utils/firebase";
 
 const auth = getAuth();
 
@@ -24,6 +26,11 @@ function Home() {
   const [classYear, setClassYear] = useState<number | null>(null);
   const [authChecked, setAuthChecked] = useState(false);
   const [selectedYear, setSelectedYear] = useState<string>("All");
+  const [rankingPairs, setRankingPairs] = useState<
+    { entry1: number; entry2: number }[]
+  >([]);
+
+  const MAX_DAILY_RANKINGS = 100;
 
   const yearMap: { [key: string]: number } = {
     Freshmen: 2028,
@@ -70,33 +77,94 @@ function Home() {
           console.error("Failed to fetch class year:", err);
         }
       };
-      fetchClassYear().then((classYear) => {
-        getCollection("students").then((data) => {
-          const sorted = data.sort(
-            (a, b) => b.score - a.score || a.name.localeCompare(b.name)
-          );
-          setEntries(sorted);
-          const filtered = sorted.filter(
-            (entry) => entry.class_year === classYear
-          );
-          setEntriesSubset(filtered);
-        });
+      fetchClassYear();
+      getCollection("students").then((data) => {
+        const sorted = data.sort(
+          (a, b) => b.score - a.score || a.name.localeCompare(b.name)
+        );
+        setEntries(sorted);
       });
     }
   }, [user]);
 
-  const updateEntriesSubset = (year: string) => {
-    setSelectedYear(year);
-    if (year === "All") {
-      setEntriesSubset(entries);
-    } else {
-      const numericYear = yearMap[year];
-      const filtered = entries.filter(
-        (entry) => entry.class_year === numericYear
+  useEffect(() => {
+    if (!user || !selectedYear) return;
+
+    const yearMap: { [key: string]: number } = {
+      Freshmen: 2028,
+      Sophomores: 2027,
+      Juniors: 2026,
+      Seniors: 2025,
+    };
+
+    const updateEntriesForYear = async () => {
+      let filtered = entries;
+      if (selectedYear === "All") {
+        setEntriesSubset(filtered);
+      } else {
+        const numericYear = yearMap[selectedYear];
+        filtered = entries.filter(
+          (entry) => entry.class_year === numericYear
+        );
+        setEntriesSubset(filtered);
+      }
+
+      if (!user || filtered.length < 2) return;
+
+      const votesSnap = await getDocs(
+        query(
+          collection(db, "votes"),
+          where("uid", "==", user.uid),
+          where("collection", "==", "students")
+        )
       );
-      setEntriesSubset(filtered);
-    }
-  };
+
+      const seenPairs = new Set<string>();
+      votesSnap.forEach((doc) => {
+        const { entryA, entryB } = doc.data();
+        seenPairs.add(`${entryA}_${entryB}`);
+      });
+
+      const randomPairs: { entry1: number; entry2: number }[] = [];
+      let attempts = 0;
+
+      while (randomPairs.length < MAX_DAILY_RANKINGS && attempts < 1000) {
+        const i1 = Math.floor(Math.random() * filtered.length);
+        let i2 = Math.floor(Math.random() * filtered.length);
+
+        while (i2 === i1) {
+          i2 = Math.floor(Math.random() * filtered.length);
+        }
+
+        const [idA, idB] = [
+          filtered[i1].id,
+          filtered[i2].id,
+        ].sort();
+        const pairKey = `${idA}_${idB}`;
+
+        const alreadyInList = randomPairs.some((pair) => {
+          const [a, b] = [
+            filtered[pair.entry1].id,
+            filtered[pair.entry2].id,
+          ].sort();
+          return `${a}_${b}` === pairKey;
+        });
+
+        if (!seenPairs.has(pairKey) && !alreadyInList) {
+          randomPairs.push({ entry1: i1, entry2: i2 });
+        }
+
+        attempts++;
+      }
+
+      setRankingPairs(randomPairs);
+      console.log(randomPairs);
+    };
+
+    updateEntriesForYear();
+
+    
+  }, [selectedYear, entries, user]);
 
   const handleLogin = async () => {
     const provider = new GoogleAuthProvider();
@@ -141,7 +209,9 @@ function Home() {
   return (
     <div className="flex flex-col w-full bg-gray-100 min-h-screen">
       <div className="flex items-center w-screen justify-between p-4 pr-10">
-        <div className="text-4xl font-bold font-['Knewave'] tracking-wide">RANKYALE</div>
+        <div className="text-4xl font-bold font-['Knewave'] tracking-wide">
+          RANKYALE
+        </div>
         <div className="flex items-center gap-6">
           <Link to="/about" className="underline">
             About
@@ -177,7 +247,11 @@ function Home() {
           )}
         </div>
         <div
-          onClick={rankStuff}
+          onClick={
+            selectedYear === "All" || yearMap[selectedYear] === classYear
+              ? rankStuff
+              : undefined
+          }
           className={`font-['Knewave'] tracking-wide bg-gradient-to-r from-blue-500 to-purple-500 text-white text-5xl font-semibold p-6 py-4 rounded-2xl shadow-lg transition duration-300 ease-in-out ${
             selectedYear === "All" || yearMap[selectedYear] === classYear
               ? "cursor-pointer hover:from-blue-600 hover:to-purple-600 active:scale-95"
