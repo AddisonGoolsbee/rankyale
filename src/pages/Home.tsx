@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
 import { getCollection } from "../utils/api";
 import { Entry } from "../utils/types";
 import {
@@ -15,6 +14,7 @@ import { functions } from "../utils/firebase";
 import { collection, getDocs, query, where } from "firebase/firestore";
 import { db } from "../utils/firebase";
 import RankingInterface from "../components/RankingInterface";
+import Navbar from "../components/Navbar";
 
 const auth = getAuth();
 
@@ -275,94 +275,79 @@ function Home() {
   const isLoading = entriesSubset.length === 0;
 
   return (
-    <div className="flex flex-col w-full bg-gray-100 min-h-screen">
-      <div className="flex items-center w-screen justify-between p-4 pr-10">
-        <div
-          className="text-4xl font-bold font-['Knewave'] tracking-wide cursor-pointer"
-          onClick={() => (window.location.href = "/")}
-        >
-          RANKYALE
+    <>
+      <Navbar handleLogout={handleLogout} />
+      <div className="flex flex-col w-full bg-gray-100 min-h-screen">
+        <div className="flex flex-col items-center w-full">
+          <h1 className="text-5xl font-bold mb-8 text-center bg-clip-text">
+            Who is the Most Popular Student?
+          </h1>
+          {!isLoading && (
+            <div className="flex bg-white rounded-lg shadow-md p-1 mb-2 text-xs sm:text-base">
+              {["All", "Freshmen", "Sophomores", "Juniors", "Seniors"].map(
+                (year) => (
+                  <button
+                    key={year}
+                    onClick={() => setSelectedYear(year)}
+                    className={`px-3 sm:px-6 py-2 rounded-md transition-colors duration-200 ${
+                      selectedYear === year
+                        ? "bg-blue-500 text-white"
+                        : "text-gray-600 hover:bg-gray-100"
+                    }`}
+                  >
+                    {year}
+                  </button>
+                )
+              )}
+            </div>
+          )}
+          <RankingInterface
+            pairs={rankingPairs[selectedYear]}
+            currentPairIndex={currentPairIndex}
+            entriesSubset={entriesSubset}
+            onVote={handleVote}
+            maxRankings={MAX_DAILY_RANKINGS}
+            valid={
+              selectedYear !== "All" && yearMap[selectedYear] === classYear
+            }
+          />
         </div>
-        <div className="flex items-center gap-6">
-          <Link to="/about" className="underline">
-            About
-          </Link>
-          <button
-            onClick={handleLogout}
-            className="text-sm underline text-red-600 hover:text-red-800"
-          >
-            Sign Out
-          </button>
-        </div>
-      </div>
 
-      <div className="flex flex-col items-center w-full">
-        <h1 className="text-5xl font-bold mb-8 text-center bg-clip-text">
-          Who is the Most Popular Student?
-        </h1>
-        {!isLoading && (
-          <div className="flex bg-white rounded-lg shadow-md p-1 mb-2 text-xs sm:text-base">
-            {["All", "Freshmen", "Sophomores", "Juniors", "Seniors"].map(
-              (year) => (
-                <button
-                  key={year}
-                  onClick={() => setSelectedYear(year)}
-                  className={`px-3 sm:px-6 py-2 rounded-md transition-colors duration-200 ${
-                    selectedYear === year
-                      ? "bg-blue-500 text-white"
-                      : "text-gray-600 hover:bg-gray-100"
-                  }`}
+        <div className="flex flex-col items-center w-full mb-12">
+          {isLoading ? (
+            <div className="fixed inset-0 flex items-center justify-center">
+              <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+            </div>
+          ) : (
+            <div className="flex flex-col items-center w-full space-y-3">
+              {entriesSubset.slice(0, 100).map((entry, index) => (
+                <div
+                  key={entry.email ?? entry.name}
+                  className="bg-white rounded-xl py-2 px-4 flex flex-row justify-between items-center space-x-4 w-full max-w-xl shadow-xs"
                 >
-                  {year}
-                </button>
-              )
-            )}
-          </div>
-        )}
-        <RankingInterface
-          pairs={rankingPairs[selectedYear]}
-          currentPairIndex={currentPairIndex}
-          entriesSubset={entriesSubset}
-          onVote={handleVote}
-          maxRankings={MAX_DAILY_RANKINGS}
-          valid={selectedYear !== "All" && yearMap[selectedYear] === classYear}
-        />
-      </div>
-
-      <div className="flex flex-col items-center w-full mb-12">
-        {isLoading ? (
-          <div className="fixed inset-0 flex items-center justify-center">
-            <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-          </div>
-        ) : (
-          <div className="flex flex-col items-center w-full space-y-3">
-            {entriesSubset.slice(0, 100).map((entry, index) => (
-              <div
-                key={entry.email ?? entry.name}
-                className="bg-white rounded-xl py-2 px-4 flex flex-row justify-between items-center space-x-4 w-full max-w-xl shadow-xs"
-              >
-                <div className="flex flex-row gap-4 text-xl font-medium">
-                  <span>{index + 1}</span>
-                  <span>{entry.name}</span>
-                  <span className="text-gray-500 text-base self-center">
-                    score: {Math.floor(entry.score)}
-                  </span>
+                  <div className="flex flex-row gap-4 text-xl font-medium">
+                    <span>{index + 1}</span>
+                    <span>{entry.name}</span>
+                    <span className="text-gray-500 text-base self-center">
+                      score: {Math.floor(entry.score)}
+                    </span>
+                  </div>
+                  <img
+                    src={
+                      entry.image === "assets/defaultStudent.avif"
+                        ? "src/assets/defaultStudent.png"
+                        : entry.image
+                    }
+                    alt={entry.name}
+                    className="h-16 object-contain rounded-md"
+                  />
                 </div>
-                <img
-                  src={
-                    entry.image === "assets/defaultStudent.avif"
-                      ? "src/assets/defaultStudent.png"
-                      : entry.image
-                  }
-                  alt={entry.name}
-                  className="h-16 object-contain rounded-md"
-                />
-              </div>
-            ))}
-          </div>
-        )}
+              ))}
+            </div>
+          )}
+        </div>
       </div>
-    </div>
+    </>
   );
 }
 
