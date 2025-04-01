@@ -6,7 +6,7 @@ interface NavbarProps {
 }
 
 const Navbar: FC<NavbarProps> = ({ handleLogout }) => (
-  <div className="flex items-center w-screen justify-between sm:p-6 sm:py-8 p-4 py-5 sm:pr-10">
+  <div className="flex items-center w-screen justify-between sm:p-6 p-4 sm:pr-10">
     <div
       className="text-3xl sm:text-4xl font-bold font-['Knewave'] tracking-wide cursor-pointer"
       onClick={() => (window.location.href = "/")}
