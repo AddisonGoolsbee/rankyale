@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { getCollection } from "../utils/api";
 import { Entry } from "../utils/types";
-import RankingModal from "../components/RankingModal";
 import {
   getAuth,
   GoogleAuthProvider,
@@ -15,29 +14,43 @@ import { httpsCallable } from "firebase/functions";
 import { functions } from "../utils/firebase";
 import { collection, getDocs, query, where } from "firebase/firestore";
 import { db } from "../utils/firebase";
+import RankingInterface from "../components/RankingInterface";
 
 const auth = getAuth();
+
+type RankingState = {
+  pairs: { entry1: number; entry2: number }[];
+  currentIndex: number;
+};
+
+const yearMap: { [key: string]: number } = {
+  Freshmen: 2028,
+  Sophomores: 2027,
+  Juniors: 2026,
+  Seniors: 2025,
+};
 
 function Home() {
   const [entries, setEntries] = useState<Entry[]>([]);
   const [entriesSubset, setEntriesSubset] = useState<Entry[]>([]); // subset of entries based on selected year, not present in non-student categories
-  const [modalOpen, setModalOpen] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const [classYear, setClassYear] = useState<number | null>(null);
   const [authChecked, setAuthChecked] = useState(false);
   const [selectedYear, setSelectedYear] = useState<string>("All");
-  const [rankingPairs, setRankingPairs] = useState<
-    { entry1: number; entry2: number }[]
-  >([]);
+  const [rankingStates, setRankingStates] = useState<{
+    [key: string]: RankingState;
+  }>({
+    All: { pairs: [], currentIndex: 0 },
+    Freshmen: { pairs: [], currentIndex: 0 },
+    Sophomores: { pairs: [], currentIndex: 0 },
+    Juniors: { pairs: [], currentIndex: 0 },
+    Seniors: { pairs: [], currentIndex: 0 },
+  });
+  const [currentPairIndex, setCurrentPairIndex] = useState(1);
+  const updateEloRating = httpsCallable(functions, "updateEloRating");
+  const K = 32;
 
   const MAX_DAILY_RANKINGS = 100;
-
-  const yearMap: { [key: string]: number } = {
-    Freshmen: 2028,
-    Sophomores: 2027,
-    Juniors: 2026,
-    Seniors: 2025,
-  };
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (u) => {
@@ -90,26 +103,26 @@ function Home() {
   useEffect(() => {
     if (!user || !selectedYear) return;
 
-    const yearMap: { [key: string]: number } = {
-      Freshmen: 2028,
-      Sophomores: 2027,
-      Juniors: 2026,
-      Seniors: 2025,
-    };
-
     const updateEntriesForYear = async () => {
       let filtered = entries;
       if (selectedYear === "All") {
         setEntriesSubset(filtered);
       } else {
         const numericYear = yearMap[selectedYear];
-        filtered = entries.filter(
-          (entry) => entry.class_year === numericYear
-        );
+        filtered = entries.filter((entry) => entry.class_year === numericYear);
         setEntriesSubset(filtered);
       }
 
-      if (!user || filtered.length < 2) return;
+      if (rankingStates[selectedYear].pairs.length > 0) {
+        return;
+      }
+
+      if (
+        !user ||
+        filtered.length < 2 ||
+        (selectedYear !== "All" && yearMap[selectedYear] !== classYear)
+      )
+        return;
 
       const votesSnap = await getDocs(
         query(
@@ -136,10 +149,7 @@ function Home() {
           i2 = Math.floor(Math.random() * filtered.length);
         }
 
-        const [idA, idB] = [
-          filtered[i1].id,
-          filtered[i2].id,
-        ].sort();
+        const [idA, idB] = [filtered[i1].id, filtered[i2].id].sort();
         const pairKey = `${idA}_${idB}`;
 
         const alreadyInList = randomPairs.some((pair) => {
@@ -157,14 +167,17 @@ function Home() {
         attempts++;
       }
 
-      setRankingPairs(randomPairs);
-      console.log(randomPairs);
+      setRankingStates((prev) => ({
+        ...prev,
+        [selectedYear]: {
+          pairs: randomPairs,
+          currentIndex: 0,
+        },
+      }));
     };
 
     updateEntriesForYear();
-
-    
-  }, [selectedYear, entries, user]);
+  }, [selectedYear, entries, user, rankingStates, classYear]);
 
   const handleLogin = async () => {
     const provider = new GoogleAuthProvider();
@@ -178,6 +191,50 @@ function Home() {
 
   const handleLogout = async () => {
     await signOut(auth);
+  };
+
+  const handleVote = async (
+    selectedEntries: { entry1: number; entry2: number },
+    mode: number
+  ) => {
+    const entry1 = entriesSubset[selectedEntries.entry1];
+    const entry2 = entriesSubset[selectedEntries.entry2];
+
+    const expectedScore1 =
+      1 / (1 + Math.pow(10, (entry2.score - entry1.score) / 400));
+    const expectedScore2 =
+      1 / (1 + Math.pow(10, (entry1.score - entry2.score) / 400));
+
+    let score1 = entry1.score;
+    let score2 = entry2.score;
+
+    if (mode === 0) {
+      score1 += K * (1 - expectedScore1);
+      score2 += K * (0 - expectedScore2);
+    } else if (mode === 1) {
+      score1 += K * (0 - expectedScore1);
+      score2 += K * (1 - expectedScore2);
+    }
+
+    setEntriesSubset((prevEntries) => {
+      const updatedEntries = [...prevEntries];
+      updatedEntries[selectedEntries.entry1] = { ...entry1, score: score1 };
+      updatedEntries[selectedEntries.entry2] = { ...entry2, score: score2 };
+      return updatedEntries;
+    });
+
+    try {
+      await updateEloRating({
+        collectionName: "students",
+        entry1Id: entry1.id,
+        entry2Id: entry2.id,
+        mode: mode,
+      });
+    } catch (error) {
+      console.error("Error calling updateEloRating:", error);
+    }
+
+    setCurrentPairIndex(currentPairIndex + 1);
   };
 
   if (!authChecked) {
@@ -201,15 +258,10 @@ function Home() {
     );
   }
 
-  const rankStuff = () => {
-    if (entries.length < 2) return;
-    setModalOpen(true);
-  };
-
   return (
     <div className="flex flex-col w-full bg-gray-100 min-h-screen">
       <div className="flex items-center w-screen justify-between p-4 pr-10">
-        <div className="text-4xl font-bold font-['Knewave'] tracking-wide">
+        <div className="text-4xl font-bold font-['Knewave'] tracking-wide cursor-pointer" onClick={() => window.location.href = "/"}>
           RANKYALE
         </div>
         <div className="flex items-center gap-6">
@@ -225,17 +277,17 @@ function Home() {
         </div>
       </div>
 
-      <div className="flex flex-col items-center w-full my-10">
+      <div className="flex flex-col items-center w-full">
         <h1 className="text-5xl font-bold mb-8 text-center bg-clip-text">
           Who is the Most Popular Student?
         </h1>
-        <div className="flex bg-white rounded-lg shadow-md p-1 mb-8">
+        <div className="flex bg-white rounded-lg shadow-md p-1 mb-2 text-xs sm:text-base">
           {["All", "Freshmen", "Sophomores", "Juniors", "Seniors"].map(
             (year) => (
               <button
                 key={year}
-                onClick={() => updateEntriesSubset(year)}
-                className={`px-6 py-2 rounded-md transition-colors duration-200 ${
+                onClick={() => setSelectedYear(year)}
+                className={`px-3 sm:px-6 py-2 rounded-md transition-colors duration-200 ${
                   selectedYear === year
                     ? "bg-blue-500 text-white"
                     : "text-gray-600 hover:bg-gray-100"
@@ -246,34 +298,16 @@ function Home() {
             )
           )}
         </div>
-        <div
-          onClick={
-            selectedYear === "All" || yearMap[selectedYear] === classYear
-              ? rankStuff
-              : undefined
-          }
-          className={`font-['Knewave'] tracking-wide bg-gradient-to-r from-blue-500 to-purple-500 text-white text-5xl font-semibold p-6 py-4 rounded-2xl shadow-lg transition duration-300 ease-in-out ${
-            selectedYear === "All" || yearMap[selectedYear] === classYear
-              ? "cursor-pointer hover:from-blue-600 hover:to-purple-600 active:scale-95"
-              : "opacity-50 cursor-not-allowed"
-          }`}
-        >
-          Vote
-        </div>
+        <RankingInterface
+          pairs={rankingStates[selectedYear].pairs}
+          currentPairIndex={currentPairIndex}
+          entriesSubset={entriesSubset}
+          onVote={handleVote}
+          maxRankings={MAX_DAILY_RANKINGS}
+        />
       </div>
 
-      {modalOpen && (
-        <RankingModal
-          onClose={() => setModalOpen(false)}
-          entries={entriesSubset}
-          setEntries={setEntriesSubset}
-          user={user}
-          collectionName="students"
-          prompt="Who is more popular?"
-        />
-      )}
-
-      <div className="flex flex-col items-center w-full">
+      <div className="flex flex-col items-center w-full mb-12">
         {entriesSubset.length === 0 ? (
           <p>Loading...</p>
         ) : (
