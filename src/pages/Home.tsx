@@ -279,7 +279,7 @@ function Home() {
       <Navbar handleLogout={handleLogout} />
       <div className="flex flex-col w-full bg-gray-100 min-h-screen">
         <div className="flex flex-col items-center w-full">
-          <h1 className="text-5xl font-bold mb-8 text-center bg-clip-text">
+          <h1 className="text-4xl sm:text-5xl font-bold mt-4 sm:mt-0 mb-8 sm:mb-8 text-center bg-clip-text">
             Who is the Most Popular Student?
           </h1>
           {!isLoading && (
@@ -319,7 +319,7 @@ function Home() {
               <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
             </div>
           ) : (
-            <div className="flex flex-col items-center w-full space-y-3">
+            <div className="flex flex-col items-center mx-3 sm:mx-0 sm:w-full space-y-3">
               {entriesSubset.slice(0, 100).map((entry, index) => (
                 <div
                   key={entry.email ?? entry.name}
@@ -327,10 +327,10 @@ function Home() {
                 >
                   <div className="flex flex-row gap-4 text-xl font-medium">
                     <span>{index + 1}</span>
-                    <span>{entry.name}</span>
-                    <span className="text-gray-500 text-base self-center">
+                    <span className="sm:text-xl text-lg">{entry.name}</span>
+                    {/* <span className="text-gray-500 text-base self-center">
                       score: {Math.floor(entry.score)}
-                    </span>
+                    </span> */}
                   </div>
                   <img
                     src={
