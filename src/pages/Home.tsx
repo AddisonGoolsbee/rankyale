@@ -18,11 +18,6 @@ import RankingInterface from "../components/RankingInterface";
 
 const auth = getAuth();
 
-type RankingState = {
-  pairs: { entry1: number; entry2: number }[];
-  currentIndex: number;
-};
-
 const yearMap: { [key: string]: number } = {
   Freshmen: 2028,
   Sophomores: 2027,
@@ -37,14 +32,24 @@ function Home() {
   const [classYear, setClassYear] = useState<number | null>(null);
   const [authChecked, setAuthChecked] = useState(false);
   const [selectedYear, setSelectedYear] = useState<string>("All");
-  const [rankingStates, setRankingStates] = useState<{
-    [key: string]: RankingState;
+  const [rankingPairs, setRankingPairs] = useState<{
+    [key: string]: { entry1: number; entry2: number }[];
   }>({
-    All: { pairs: [], currentIndex: 0 },
-    Freshmen: { pairs: [], currentIndex: 0 },
-    Sophomores: { pairs: [], currentIndex: 0 },
-    Juniors: { pairs: [], currentIndex: 0 },
-    Seniors: { pairs: [], currentIndex: 0 },
+    All: [],
+    Freshmen: [],
+    Sophomores: [],
+    Juniors: [],
+    Seniors: [],
+  });
+
+  const [rankingIndices, setRankingIndices] = useState<{
+    [key: string]: number;
+  }>({
+    All: 0,
+    Freshmen: 0,
+    Sophomores: 0,
+    Juniors: 0,
+    Seniors: 0,
   });
   const [currentPairIndex, setCurrentPairIndex] = useState(1);
   const updateEloRating = httpsCallable(functions, "updateEloRating");
@@ -113,7 +118,8 @@ function Home() {
         setEntriesSubset(filtered);
       }
 
-      if (rankingStates[selectedYear].pairs.length > 0) {
+      if (rankingPairs[selectedYear].length > 0) {
+        setCurrentPairIndex(rankingIndices[selectedYear] + 1);
         return;
       }
 
@@ -167,17 +173,18 @@ function Home() {
         attempts++;
       }
 
-      setRankingStates((prev) => ({
+      setRankingPairs((prev) => ({
         ...prev,
-        [selectedYear]: {
-          pairs: randomPairs,
-          currentIndex: 0,
-        },
+        [selectedYear]: randomPairs,
+      }));
+      setRankingIndices((prev) => ({
+        ...prev,
+        [selectedYear]: 0,
       }));
     };
 
     updateEntriesForYear();
-  }, [selectedYear, entries, user, rankingStates, classYear]);
+  }, [selectedYear, entries, user, classYear, rankingPairs, rankingIndices]);
 
   const handleLogin = async () => {
     const provider = new GoogleAuthProvider();
@@ -197,6 +204,10 @@ function Home() {
     selectedEntries: { entry1: number; entry2: number },
     mode: number
   ) => {
+    setRankingIndices((prev) => ({
+      ...prev,
+      [selectedYear]: prev[selectedYear] + 1,
+    }));
     setCurrentPairIndex(currentPairIndex + 1);
 
     const entry1 = entriesSubset[selectedEntries.entry1];
@@ -261,6 +272,8 @@ function Home() {
     );
   }
 
+  const isLoading = entriesSubset.length === 0;
+
   return (
     <div className="flex flex-col w-full bg-gray-100 min-h-screen">
       <div className="flex items-center w-screen justify-between p-4 pr-10">
@@ -287,35 +300,40 @@ function Home() {
         <h1 className="text-5xl font-bold mb-8 text-center bg-clip-text">
           Who is the Most Popular Student?
         </h1>
-        <div className="flex bg-white rounded-lg shadow-md p-1 mb-2 text-xs sm:text-base">
-          {["All", "Freshmen", "Sophomores", "Juniors", "Seniors"].map(
-            (year) => (
-              <button
-                key={year}
-                onClick={() => setSelectedYear(year)}
-                className={`px-3 sm:px-6 py-2 rounded-md transition-colors duration-200 ${
-                  selectedYear === year
-                    ? "bg-blue-500 text-white"
-                    : "text-gray-600 hover:bg-gray-100"
-                }`}
-              >
-                {year}
-              </button>
-            )
-          )}
-        </div>
+        {!isLoading && (
+          <div className="flex bg-white rounded-lg shadow-md p-1 mb-2 text-xs sm:text-base">
+            {["All", "Freshmen", "Sophomores", "Juniors", "Seniors"].map(
+              (year) => (
+                <button
+                  key={year}
+                  onClick={() => setSelectedYear(year)}
+                  className={`px-3 sm:px-6 py-2 rounded-md transition-colors duration-200 ${
+                    selectedYear === year
+                      ? "bg-blue-500 text-white"
+                      : "text-gray-600 hover:bg-gray-100"
+                  }`}
+                >
+                  {year}
+                </button>
+              )
+            )}
+          </div>
+        )}
         <RankingInterface
-          pairs={rankingStates[selectedYear].pairs}
+          pairs={rankingPairs[selectedYear]}
           currentPairIndex={currentPairIndex}
           entriesSubset={entriesSubset}
           onVote={handleVote}
           maxRankings={MAX_DAILY_RANKINGS}
+          valid={selectedYear !== "All" && yearMap[selectedYear] === classYear}
         />
       </div>
 
       <div className="flex flex-col items-center w-full mb-12">
-        {entriesSubset.length === 0 ? (
-          <p>Loading...</p>
+        {isLoading ? (
+          <div className="fixed inset-0 flex items-center justify-center">
+            <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+          </div>
         ) : (
           <div className="flex flex-col items-center w-full space-y-3">
             {entriesSubset.slice(0, 100).map((entry, index) => (
