@@ -25,9 +25,9 @@ const Choice = ({ entry, onClick }: { entry: Entry; onClick: () => void }) => {
             : entry.image
         }
         alt={entry.name}
-        className="h-40 bg-red-400 sm:h-60 md:h-80 object-contain mb-4 rounded-lg"
+        className="h-40 sm:h-60 md:h-80 object-contain mb-4 rounded-lg"
       />
-      <span className="text-xl font-semibold">{entry.name}</span>
+      <span className="text-2xl font-semibold">{entry.name}</span>
     </div>
   );
 };

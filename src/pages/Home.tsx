@@ -197,6 +197,8 @@ function Home() {
     selectedEntries: { entry1: number; entry2: number },
     mode: number
   ) => {
+    setCurrentPairIndex(currentPairIndex + 1);
+
     const entry1 = entriesSubset[selectedEntries.entry1];
     const entry2 = entriesSubset[selectedEntries.entry2];
 
@@ -220,6 +222,9 @@ function Home() {
       const updatedEntries = [...prevEntries];
       updatedEntries[selectedEntries.entry1] = { ...entry1, score: score1 };
       updatedEntries[selectedEntries.entry2] = { ...entry2, score: score2 };
+      updatedEntries.sort(
+        (a, b) => b.score - a.score || a.name.localeCompare(b.name)
+      );
       return updatedEntries;
     });
 
@@ -233,8 +238,6 @@ function Home() {
     } catch (error) {
       console.error("Error calling updateEloRating:", error);
     }
-
-    setCurrentPairIndex(currentPairIndex + 1);
   };
 
   if (!authChecked) {
@@ -261,7 +264,10 @@ function Home() {
   return (
     <div className="flex flex-col w-full bg-gray-100 min-h-screen">
       <div className="flex items-center w-screen justify-between p-4 pr-10">
-        <div className="text-4xl font-bold font-['Knewave'] tracking-wide cursor-pointer" onClick={() => window.location.href = "/"}>
+        <div
+          className="text-4xl font-bold font-['Knewave'] tracking-wide cursor-pointer"
+          onClick={() => (window.location.href = "/")}
+        >
           RANKYALE
         </div>
         <div className="flex items-center gap-6">
