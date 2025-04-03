@@ -3,3 +3,62 @@
 html, body {
   @apply bg-gray-100;
 }
+
+@keyframes float {
+  0% {
+    transform: translate(0, 0) scale(1);
+  }
+  33% {
+    transform: translate(30px, -50px) scale(1.1);
+  }
+  66% {
+    transform: translate(-20px, 20px) scale(0.9);
+  }
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+}
+
+@keyframes float2 {
+  0% {
+    transform: translate(0, 0) scale(1);
+  }
+  33% {
+    transform: translate(-40px, 30px) scale(1.1);
+  }
+  66% {
+    transform: translate(30px, -30px) scale(0.9);
+  }
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+}
+
+@keyframes float3 {
+  0% {
+    transform: translate(0, 0) scale(1);
+  }
+  33% {
+    transform: translate(20px, 40px) scale(1.1);
+  }
+  66% {
+    transform: translate(-40px, -20px) scale(0.9);
+  }
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+}
+
+.orb {
+  @apply absolute rounded-full opacity-40 md:opacity-30 blur-3xl pointer-events-none;
+  background: rgb(59, 130, 246);
+  animation: float 20s ease-in-out infinite;
+}
+
+.orb:nth-child(2) {
+  animation: float2 25s ease-in-out infinite;
+}
+
+.orb:nth-child(3) {
+  animation: float3 30s ease-in-out infinite;
+}

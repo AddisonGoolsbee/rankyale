@@ -14,6 +14,7 @@ import { functions } from "../utils/firebase";
 import RankingInterface from "../components/RankingInterface";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
+import BackgroundOrbs from "../components/BackgroundOrbs";
 
 const auth = getAuth();
 
@@ -274,7 +275,8 @@ function Home() {
 
   if (!authChecked) {
     return (
-      <div className="flex items-center justify-center min-h-[100dvh] bg-gray-100">
+      <div className="relative flex items-center justify-center min-h-[100dvh] bg-gray-100">
+        <BackgroundOrbs />
         <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
@@ -283,15 +285,16 @@ function Home() {
   if (!user) {
     return (
       <div className="flex items-center justify-center min-h-[100dvh] bg-gray-100 flex-col gap-8">
-        <div className="text-6xl sm:text-8xl font-bold font-['Knewave'] tracking-wide">
+        <BackgroundOrbs />
+        <div className="text-6xl sm:text-8xl font-bold font-['Knewave'] tracking-wide z-10">
           RANKYALE
         </div>
-        <div className="text-lg sm:text-xl italic font-light mx-10 text-center">
+        <div className="text-lg sm:text-xl italic font-light mx-10 text-center z-10">
           Who is the most popular student?
         </div>
         <button
           onClick={handleLogin}
-          className="bg-blue-600 text-white px-6 py-3 text-lg rounded shadow hover:bg-blue-700 transition"
+          className="bg-blue-600 text-white px-6 py-3 text-lg rounded-lg shadow hover:bg-blue-700 transition z-10 cursor-pointer"
         >
           Sign in with your Yale email
         </button>
@@ -303,14 +306,15 @@ function Home() {
 
   return (
     <>
+      <BackgroundOrbs />
       <Navbar handleLogout={handleLogout} />
-      <div className="flex flex-col w-full bg-gray-100 min-h-[100dvh]">
+      <div className="flex flex-col w-full min-h-[100dvh] z-10 relative">
         <div className="flex flex-col items-center w-full">
-          <h1 className="text-4xl sm:text-5xl font-bold mt-4 sm:mt-0 mb-8 sm:mb-8 text-center bg-clip-text">
+          <h1 className="text-4xl sm:text-5xl font-bold mt-4 sm:mt-0 mb-8 sm:mb-8 text-center bg-clip-text z-10">
             Who is the Most Popular Student?
           </h1>
           {!isLoading && (
-            <div className="flex bg-white rounded-lg shadow-md p-1 mb-2 text-xs sm:text-base">
+            <div className="flex bg-white rounded-lg shadow-md p-1 mb-2 text-xs sm:text-base z-10">
               {["All", "Freshmen", "Sophomores", "Juniors", "Seniors"].map(
                 (year) => (
                   <button
@@ -351,7 +355,7 @@ function Home() {
               {entriesSubset.slice(0, 100).map((entry, index) => (
                 <div
                   key={entry.email ?? entry.name}
-                  className="bg-white rounded-xl py-2 px-4 flex flex-row justify-between items-center space-x-4 w-full max-w-xl shadow-xs"
+                  className="bg-white/50 backdrop-blur-lg rounded-xl py-2 px-4 flex flex-row justify-between items-center space-x-4 w-full max-w-xl shadow-xs"
                 >
                   <div className="flex flex-row gap-4 text-xl font-medium">
                     <span>{index + 1}</span>
