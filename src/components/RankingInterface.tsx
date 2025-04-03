@@ -9,7 +9,7 @@ type RankingInterfaceProps = {
     selectedEntries: { entry1: number; entry2: number },
     mode: number
   ) => void;
-  maxRankings: number;
+  remainingVotes: number;
   valid: boolean;
 };
 
@@ -45,7 +45,9 @@ const Choice = ({ entry, onClick }: { entry: Entry; onClick: () => void }) => {
         />
         {!entry.image && <div className="text-gray-400">Loading...</div>}
       </div>
-      <span className="sm:mt-4 mt-2 sm:text-2xl text-base font-semibold">{entry.name}</span>
+      <span className="sm:mt-4 mt-2 sm:text-2xl text-base font-semibold">
+        {entry.name}
+      </span>
     </div>
   );
 };
@@ -55,7 +57,7 @@ const RankingInterface = ({
   currentPairIndex,
   entriesSubset,
   onVote,
-  maxRankings,
+  remainingVotes,
   valid,
 }: RankingInterfaceProps) => {
   useEffect(() => {
@@ -92,13 +94,9 @@ const RankingInterface = ({
         {entriesSubset.length !== 0 && (
           <div className="sm:text-lg text-sm text-gray-600 flex flex-col items-center sm:my-6 my-4 sm:mb-8 mb-6">
             {valid ? (
-              <div>
-                Come back tomorrow for more rankings!
-              </div>
+              <div>Come back tomorrow for more rankings!</div>
             ) : (
-              <div>
-                You are unable to rank this category
-              </div>
+              <div>You are unable to rank this category</div>
             )}
           </div>
         )}
@@ -126,7 +124,8 @@ const RankingInterface = ({
         I'm indifferent
       </button>
       <div className="text-gray-400 my-2 sm:text-base text-sm">
-        {maxRankings - currentPairIndex + 1} votes left today for this category
+        {remainingVotes - currentPairIndex + 1} votes left today for this
+        category
       </div>
     </div>
   );

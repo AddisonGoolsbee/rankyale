@@ -11,8 +11,6 @@ import {
 } from "firebase/auth";
 import { httpsCallable } from "firebase/functions";
 import { functions } from "../utils/firebase";
-import { collection, getDocs, query, where } from "firebase/firestore";
-import { db } from "../utils/firebase";
 import RankingInterface from "../components/RankingInterface";
 import Navbar from "../components/Navbar";
 
@@ -51,6 +49,17 @@ function Home() {
     Juniors: 0,
     Seniors: 0,
   });
+
+  const [rankingRemainingVotes, setRankingRemainingVotes] = useState<{
+    [key: string]: number;
+  }>({
+    All: 0,
+    Freshmen: 0,
+    Sophomores: 0,
+    Juniors: 0,
+    Seniors: 0,
+  });
+
   const [currentPairIndex, setCurrentPairIndex] = useState(1);
   const updateEloRating = httpsCallable(functions, "updateEloRating");
   const K = 32;
@@ -81,15 +90,35 @@ function Home() {
     if (user) {
       const fetchClassYear = async () => {
         try {
-          const getClassYear = httpsCallable(functions, "getClassYear");
-          const res = await getClassYear();
-          const data = res.data as { classYear: number };
+          const getUser = httpsCallable(functions, "getUser");
+          const res = await getUser();
+          const data = res.data as {
+            classYear: number;
+            todaysVotes: { [key: string]: number };
+          };
           setClassYear(data.classYear);
           setSelectedYear(
             yearMapReverse[
               data.classYear as keyof typeof yearMapReverse
             ] as string
           );
+
+          const votes = data.todaysVotes;
+          const updatedVotes = { ...votes };
+
+          Object.keys(votes).forEach((key) => {
+            if (
+              key === "All" ||
+              key ===
+                (yearMapReverse[
+                  data.classYear as keyof typeof yearMapReverse
+                ] as string)
+            ) {
+              updatedVotes[key] = MAX_DAILY_RANKINGS - votes[key];
+            }
+          });
+
+          setRankingRemainingVotes(updatedVotes);
           return data.classYear;
         } catch (err) {
           console.error("Failed to fetch class year:", err);
@@ -106,6 +135,11 @@ function Home() {
   }, [user]);
 
   useEffect(() => {
+    const fetchVotesAndGeneratePairs = httpsCallable(
+      functions,
+      "fetchVotesAndGeneratePairs"
+    );
+
     if (!user || !selectedYear) return;
 
     const updateEntriesForYear = async () => {
@@ -130,49 +164,12 @@ function Home() {
       )
         return;
 
-      const votesSnap = await getDocs(
-        query(
-          collection(db, "votes"),
-          where("uid", "==", user.uid),
-          where("collection", "==", "students")
-        )
-      );
-
-      const seenPairs = new Set<string>();
-      votesSnap.forEach((doc) => {
-        const { entryA, entryB } = doc.data();
-        seenPairs.add(`${entryA}_${entryB}`);
+      const res = await fetchVotesAndGeneratePairs({
+        collection: "students",
+        uid: user.uid,
+        subset: selectedYear,
       });
-
-      const randomPairs: { entry1: number; entry2: number }[] = [];
-      let attempts = 0;
-
-      while (randomPairs.length < MAX_DAILY_RANKINGS && attempts < 1000) {
-        const i1 = Math.floor(Math.random() * filtered.length);
-        let i2 = Math.floor(Math.random() * filtered.length);
-
-        while (i2 === i1) {
-          i2 = Math.floor(Math.random() * filtered.length);
-        }
-
-        const [idA, idB] = [filtered[i1].id, filtered[i2].id].sort();
-        const pairKey = `${idA}_${idB}`;
-
-        const alreadyInList = randomPairs.some((pair) => {
-          const [a, b] = [
-            filtered[pair.entry1].id,
-            filtered[pair.entry2].id,
-          ].sort();
-          return `${a}_${b}` === pairKey;
-        });
-
-        if (!seenPairs.has(pairKey) && !alreadyInList) {
-          randomPairs.push({ entry1: i1, entry2: i2 });
-        }
-
-        attempts++;
-      }
-
+      const randomPairs = res.data as { entry1: number; entry2: number }[];
       setRankingPairs((prev) => ({
         ...prev,
         [selectedYear]: randomPairs,
@@ -245,6 +242,7 @@ function Home() {
         entry1Id: entry1.id,
         entry2Id: entry2.id,
         mode: mode,
+        subcategory: selectedYear,
       });
     } catch (error) {
       console.error("Error calling updateEloRating:", error);
@@ -306,7 +304,7 @@ function Home() {
             currentPairIndex={currentPairIndex}
             entriesSubset={entriesSubset}
             onVote={handleVote}
-            maxRankings={MAX_DAILY_RANKINGS}
+            remainingVotes={rankingRemainingVotes[selectedYear]}
             valid={
               selectedYear !== "All" && yearMap[selectedYear] === classYear
             }
