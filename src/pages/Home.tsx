@@ -40,6 +40,7 @@ function Home() {
     Juniors: [],
     Seniors: [],
   });
+  const [isPairsLoading, setIsPairsLoading] = useState(true);
 
   const [rankingIndices, setRankingIndices] = useState<{
     [key: string]: number;
@@ -165,6 +166,7 @@ function Home() {
       )
         return;
 
+      setIsPairsLoading(true);
       const res = await fetchVotesAndGeneratePairs({
         collection: "students",
         uid: user.uid,
@@ -179,6 +181,7 @@ function Home() {
         ...prev,
         [selectedYear]: 0,
       }));
+      setIsPairsLoading(false);
     };
 
     updateEntriesForYear();
@@ -334,6 +337,7 @@ function Home() {
             valid={
               selectedYear !== "All" && yearMap[selectedYear] === classYear
             }
+            isPairsLoading={isPairsLoading}
           />
         </div>
 
@@ -359,7 +363,7 @@ function Home() {
                   <img
                     src={
                       entry.image === "assets/defaultStudent.avif"
-                        ? "src/assets/defaultStudent.png"
+                        ? "/defaultStudent.png"
                         : entry.image
                     }
                     alt={entry.name}

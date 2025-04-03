@@ -11,6 +11,7 @@ type RankingInterfaceProps = {
   ) => void;
   remainingVotes: number;
   valid: boolean;
+  isPairsLoading: boolean;
 };
 
 const Choice = ({ entry, onClick }: { entry: Entry; onClick: () => void }) => {
@@ -19,9 +20,9 @@ const Choice = ({ entry, onClick }: { entry: Entry; onClick: () => void }) => {
       const img = new Image();
       img.src = entry.image
         ? entry.image === "assets/defaultStudent.avif"
-          ? "src/assets/defaultStudent.png"
+          ? "/defaultStudent.png"
           : entry.image
-        : "src/assets/defaultStudent.png"; // Default image if entry.image is undefined
+        : "/defaultStudent.png"; // Default image if entry.image is undefined
     }
   }, [entry]);
 
@@ -36,7 +37,7 @@ const Choice = ({ entry, onClick }: { entry: Entry; onClick: () => void }) => {
         <img
           src={
             entry.image === "assets/defaultStudent.avif"
-              ? "src/assets/defaultStudent.png"
+              ? "/defaultStudent.png"
               : entry.image
           }
           alt={entry.name}
@@ -59,6 +60,7 @@ const RankingInterface = ({
   onVote,
   remainingVotes,
   valid,
+  isPairsLoading,
 }: RankingInterfaceProps) => {
   useEffect(() => {
     const preloadImages = (index: number) => {
@@ -69,9 +71,9 @@ const RankingInterface = ({
             const img = new Image();
             img.src = entry.image
               ? entry.image === "assets/defaultStudent.avif"
-                ? "src/assets/defaultStudent.png"
+                ? "/defaultStudent.png"
                 : entry.image
-              : "src/assets/defaultStudent.png"; // Default image if entry.image is undefined
+              : "/defaultStudent.png";
           }
         };
 
@@ -88,7 +90,13 @@ const RankingInterface = ({
     preloadImages(currentPairIndex);
   }, [currentPairIndex, pairs, entriesSubset]);
 
-  if (pairs.length === 0) {
+  if (isPairsLoading && entriesSubset.length !== 0) {
+    return (
+      <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin my-24"></div>
+    );
+  }
+
+  if (pairs.length - currentPairIndex <= 0) {
     return (
       <>
         {entriesSubset.length !== 0 && (
@@ -119,7 +127,7 @@ const RankingInterface = ({
       </div>
       <button
         onClick={() => onVote(pairs[currentPairIndex - 1], 2)}
-        className="sm:px-12 px-8 sm:py-4 py-3 bg-white sm:text-xl text-base font-semibold rounded-lg hover:scale-105 active:scale-100 transition duration-200 shadow-lg"
+        className="sm:px-12 px-8 sm:py-6 py-3 bg-white sm:text-2xl text-base font-semibold rounded-2xl hover:scale-105 active:scale-100 transition duration-200 shadow-lg"
       >
         I'm indifferent
       </button>
