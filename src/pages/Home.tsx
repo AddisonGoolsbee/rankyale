@@ -226,6 +226,19 @@ function Home() {
       score2 += K * (1 - expectedScore2);
     }
 
+      setEntries((prevEntries) => {
+        const updatedEntries = [...prevEntries];
+        const index1 = updatedEntries.findIndex((e) => e.id === entry1.id);
+        const index2 = updatedEntries.findIndex((e) => e.id === entry2.id);
+        if (index1 !== -1)
+          updatedEntries[index1] = { ...entry1, score: score1 };
+        if (index2 !== -1)
+          updatedEntries[index2] = { ...entry2, score: score2 };
+        return updatedEntries.sort(
+          (a, b) => b.score - a.score || a.name.localeCompare(b.name)
+        );
+      });
+
     setEntriesSubset((prevEntries) => {
       const updatedEntries = [...prevEntries];
       updatedEntries[selectedEntries.entry1] = { ...entry1, score: score1 };
