@@ -30,7 +30,7 @@ const Choice = ({ entry, onClick }: { entry: Entry; onClick: () => void }) => {
   return (
     <div
       onClick={onClick}
-      className="flex flex-col flex-1 items-center rounded-lg hover:scale-105 transition duration-200 active:scale-100"
+      className="flex flex-col flex-1 items-center rounded-lg hover:scale-105 transition duration-200 active:scale-100 cursor-pointer"
     >
       <div className="h-46 min-w-32 sm:h-60 sm:min-w-44 md:h-80 md:min-w-60 w-full flex items-center justify-center rounded-lg overflow-hidden">
         <img

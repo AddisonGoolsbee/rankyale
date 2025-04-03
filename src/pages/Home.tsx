@@ -300,7 +300,7 @@ function Home() {
                   <button
                     key={year}
                     onClick={() => setSelectedYear(year)}
-                    className={`px-3 sm:px-6 py-2 rounded-md transition-colors duration-200 ${
+                    className={`px-3 sm:px-6 py-2 rounded-md transition-colors duration-200 cursor-pointer ${
                       selectedYear === year
                         ? "bg-blue-500 text-white"
                         : "text-gray-600 hover:bg-gray-100"
