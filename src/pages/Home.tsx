@@ -13,6 +13,7 @@ import { httpsCallable } from "firebase/functions";
 import { functions } from "../utils/firebase";
 import RankingInterface from "../components/RankingInterface";
 import Navbar from "../components/Navbar";
+import Footer from "../components/Footer";
 
 const auth = getAuth();
 
@@ -185,11 +186,19 @@ function Home() {
 
   const handleLogin = async () => {
     const provider = new GoogleAuthProvider();
-    const result = await signInWithPopup(auth, provider);
-    const email = result.user.email;
-    if (!email?.endsWith("@yale.edu")) {
-      alert("Only yale.edu emails are allowed");
-      await signOut(auth);
+    // const isMobile = /Mobi|Android/i.test(navigator.userAgent);
+    try {
+      const result = await signInWithPopup(auth, provider);
+
+      const user = result?.user || auth.currentUser;
+      const email = user?.email;
+
+      if (!email?.endsWith("@yale.edu")) {
+        alert("Only yale.edu emails are allowed");
+        await signOut(auth);
+      }
+    } catch (err) {
+      console.error("Login error:", err);
     }
   };
 
@@ -226,18 +235,16 @@ function Home() {
       score2 += K * (1 - expectedScore2);
     }
 
-      setEntries((prevEntries) => {
-        const updatedEntries = [...prevEntries];
-        const index1 = updatedEntries.findIndex((e) => e.id === entry1.id);
-        const index2 = updatedEntries.findIndex((e) => e.id === entry2.id);
-        if (index1 !== -1)
-          updatedEntries[index1] = { ...entry1, score: score1 };
-        if (index2 !== -1)
-          updatedEntries[index2] = { ...entry2, score: score2 };
-        return updatedEntries.sort(
-          (a, b) => b.score - a.score || a.name.localeCompare(b.name)
-        );
-      });
+    setEntries((prevEntries) => {
+      const updatedEntries = [...prevEntries];
+      const index1 = updatedEntries.findIndex((e) => e.id === entry1.id);
+      const index2 = updatedEntries.findIndex((e) => e.id === entry2.id);
+      if (index1 !== -1) updatedEntries[index1] = { ...entry1, score: score1 };
+      if (index2 !== -1) updatedEntries[index2] = { ...entry2, score: score2 };
+      return updatedEntries.sort(
+        (a, b) => b.score - a.score || a.name.localeCompare(b.name)
+      );
+    });
 
     setEntriesSubset((prevEntries) => {
       const updatedEntries = [...prevEntries];
@@ -264,7 +271,7 @@ function Home() {
 
   if (!authChecked) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-100">
+      <div className="flex items-center justify-center min-h-[100dvh] bg-gray-100">
         <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
@@ -272,12 +279,18 @@ function Home() {
 
   if (!user) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-100">
+      <div className="flex items-center justify-center min-h-[100dvh] bg-gray-100 flex-col gap-8">
+        <div className="text-6xl sm:text-8xl font-bold font-['Knewave'] tracking-wide">
+          RANKYALE
+        </div>
+        <div className="text-lg sm:text-xl italic font-light mx-10 text-center">
+          Who is the most popular student?
+        </div>
         <button
           onClick={handleLogin}
           className="bg-blue-600 text-white px-6 py-3 text-lg rounded shadow hover:bg-blue-700 transition"
         >
-          Sign in with Yale email
+          Sign in with your Yale email
         </button>
       </div>
     );
@@ -288,7 +301,7 @@ function Home() {
   return (
     <>
       <Navbar handleLogout={handleLogout} />
-      <div className="flex flex-col w-full bg-gray-100 min-h-screen">
+      <div className="flex flex-col w-full bg-gray-100 min-h-[100dvh]">
         <div className="flex flex-col items-center w-full">
           <h1 className="text-4xl sm:text-5xl font-bold mt-4 sm:mt-0 mb-8 sm:mb-8 text-center bg-clip-text">
             Who is the Most Popular Student?
@@ -324,7 +337,7 @@ function Home() {
           />
         </div>
 
-        <div className="flex flex-col items-center w-full mb-12">
+        <div className="flex flex-col items-center w-full">
           {isLoading ? (
             <div className="fixed inset-0 flex items-center justify-center">
               <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
@@ -358,6 +371,7 @@ function Home() {
           )}
         </div>
       </div>
+      <Footer />
     </>
   );
 }
