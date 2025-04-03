@@ -339,6 +339,7 @@ function Home() {
             </div>
           )}
           <RankingInterface
+            key={selectedYear}
             pairs={rankingPairs[selectedYear]}
             currentPairIndex={currentPairIndex}
             entriesSubset={entriesSubset}

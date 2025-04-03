@@ -41,6 +41,7 @@ const Choice = ({ entry, onClick }: { entry: Entry; onClick: () => void }) => {
               : entry.image
           }
           alt={entry.name}
+          key={entry.image}
           className="object-contain h-full min-w-32 sm:min-w-44 md:min-w-60 rounded-lg"
           style={{ display: entry.image ? "block" : "none" }}
         />
