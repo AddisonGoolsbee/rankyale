@@ -174,6 +174,12 @@ function Home() {
         subset: selectedYear,
       });
       const randomPairs = res.data as { entry1: number; entry2: number }[];
+
+      if (randomPairs.length === 0) {
+        setIsPairsLoading(false);
+        return;
+      }
+
       setRankingPairs((prev) => ({
         ...prev,
         [selectedYear]: randomPairs,
