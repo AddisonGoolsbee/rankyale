@@ -33,7 +33,7 @@ const Choice = ({ entry, onClick }: { entry: Entry; onClick: () => void }) => {
       onClick={onClick}
       className="flex flex-col flex-1 items-center rounded-lg hover:scale-105 transition duration-200 active:scale-100 cursor-pointer"
     >
-      <div className="h-46 min-w-32 sm:h-60 sm:min-w-44 md:h-80 md:min-w-60 w-full flex items-center justify-center rounded-lg overflow-hidden">
+      <div className="h-46 min-w-32 sm:h-60 sm:min-w-44 md:h-80 md:min-w-80 w-full flex items-center justify-center rounded-lg overflow-hidden mx-4">
         <img
           src={
             entry.image === "assets/defaultStudent.avif"
@@ -41,12 +41,16 @@ const Choice = ({ entry, onClick }: { entry: Entry; onClick: () => void }) => {
               : entry.image
           }
           alt={entry.name}
-          className="object-contain h-full"
+          className="object-contain h-full min-w-32 sm:min-w-44 md:min-w-60 rounded-lg"
           style={{ display: entry.image ? "block" : "none" }}
         />
         {!entry.image && <div className="text-gray-400">Loading...</div>}
       </div>
-      <span className="sm:mt-4 mt-2 sm:text-2xl text-base font-semibold">
+      <span
+        className={`sm:mt-4 mt-2 font-semibold ${
+          entry.name.length > 17 ? "text-sm" : "text-base sm:text-2xl"
+        }`}
+      >
         {entry.name}
       </span>
     </div>
@@ -114,7 +118,7 @@ const RankingInterface = ({
 
   return (
     <div className="sm:p-6 py-4 w-full text-center relative flex flex-col items-center">
-      <div className="flex justify-center gap-2 sm:gap-12 flex-row sm:mx-8 sm:mb-6 mb-4">
+      <div className="flex justify-center flex-row sm:mx-8 sm:mb-6 mb-4">
         <Choice
           entry={entriesSubset[pairs[currentPairIndex - 1]?.entry1]}
           onClick={() => onVote(pairs[currentPairIndex - 1], 0)}
