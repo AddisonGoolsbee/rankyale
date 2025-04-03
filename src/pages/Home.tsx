@@ -346,7 +346,7 @@ function Home() {
             onVote={handleVote}
             remainingVotes={rankingRemainingVotes[selectedYear]}
             valid={
-              selectedYear !== "All" && yearMap[selectedYear] === classYear
+              selectedYear === "All" || yearMap[selectedYear] === classYear
             }
             isPairsLoading={isPairsLoading}
           />

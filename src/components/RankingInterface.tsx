@@ -1,5 +1,6 @@
 import { Entry } from "../utils/types";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+// import ConfettiBurst from "./ConfettiBurst";
 
 type RankingInterfaceProps = {
   pairs: { entry1: number; entry2: number }[];
@@ -15,6 +16,20 @@ type RankingInterfaceProps = {
 };
 
 const Choice = ({ entry, onClick }: { entry: Entry; onClick: () => void }) => {
+  const [clicked, setClicked] = useState(false);
+  const [disabled, setDisabled] = useState(false);
+
+  const handleClick = () => {
+    if (disabled) return;
+    setClicked(true);
+    setDisabled(true);
+    setTimeout(() => {
+      setClicked(false);
+      setDisabled(false);
+    }, 200);
+    onClick();
+  };
+  
   useEffect(() => {
     if (entry) {
       const img = new Image();
@@ -22,7 +37,7 @@ const Choice = ({ entry, onClick }: { entry: Entry; onClick: () => void }) => {
         ? entry.image === "assets/defaultStudent.avif"
           ? "/defaultStudent.png"
           : entry.image
-        : "/defaultStudent.png"; // Default image if entry.image is undefined
+        : "/defaultStudent.png";
     }
   }, [entry]);
 
@@ -30,10 +45,11 @@ const Choice = ({ entry, onClick }: { entry: Entry; onClick: () => void }) => {
 
   return (
     <div
-      onClick={onClick}
+      onClick={handleClick}
       className="flex flex-col flex-1 items-center rounded-lg hover:scale-105 transition duration-200 active:scale-100 cursor-pointer"
     >
-      <div className="h-46 min-w-32 sm:h-60 sm:min-w-44 md:h-80 md:min-w-80 w-full flex items-center justify-center rounded-lg overflow-hidden mx-4">
+      {/* <ConfettiBurst trigger={clicked} /> */}
+      <div className="h-46 min-w-32 sm:h-60 sm:min-w-44 md:h-80 md:min-w-80 w-full flex items-center justify-center rounded-lg overflow-hidden mx-4 relative z-10">
         <img
           src={
             entry.image === "assets/defaultStudent.avif"
@@ -49,7 +65,9 @@ const Choice = ({ entry, onClick }: { entry: Entry; onClick: () => void }) => {
       </div>
       <span
         className={`sm:mt-4 mt-2 font-semibold ${
-          entry.name.length > 17 ? "text-sm" : "text-base sm:text-2xl"
+          entry.name.length > 17
+            ? "text-sm sm:text-2xl"
+            : "text-base sm:text-2xl"
         }`}
       >
         {entry.name}
