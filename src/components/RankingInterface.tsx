@@ -16,15 +16,15 @@ type RankingInterfaceProps = {
 };
 
 const Choice = ({ entry, onClick }: { entry: Entry; onClick: () => void }) => {
-  const [clicked, setClicked] = useState(false);
+  // const [clicked, setClicked] = useState(false);
   const [disabled, setDisabled] = useState(false);
 
   const handleClick = () => {
     if (disabled) return;
-    setClicked(true);
+    // setClicked(true);
     setDisabled(true);
     setTimeout(() => {
-      setClicked(false);
+      // setClicked(false);
       setDisabled(false);
     }, 200);
     onClick();
