@@ -162,8 +162,7 @@ function Home() {
 
       if (
         !user ||
-        filtered.length < 2 ||
-        (selectedYear !== "All" && yearMap[selectedYear] !== classYear)
+        filtered.length < 2
       )
         return;
 
@@ -345,9 +344,7 @@ function Home() {
             entriesSubset={entriesSubset}
             onVote={handleVote}
             remainingVotes={rankingRemainingVotes[selectedYear]}
-            valid={
-              selectedYear === "All" || yearMap[selectedYear] === classYear
-            }
+            valid={true}
             isPairsLoading={isPairsLoading}
           />
         </div>
