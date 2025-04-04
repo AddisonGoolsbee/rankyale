@@ -110,15 +110,7 @@ function Home() {
           const updatedVotes = { ...votes };
 
           Object.keys(votes).forEach((key) => {
-            if (
-              key === "All" ||
-              key ===
-                (yearMapReverse[
-                  data.classYear as keyof typeof yearMapReverse
-                ] as string)
-            ) {
-              updatedVotes[key] = MAX_DAILY_RANKINGS - votes[key];
-            }
+            updatedVotes[key] = MAX_DAILY_RANKINGS - votes[key];
           });
 
           setRankingRemainingVotes(updatedVotes);
@@ -160,11 +152,7 @@ function Home() {
         return;
       }
 
-      if (
-        !user ||
-        filtered.length < 2
-      )
-        return;
+      if (!user || filtered.length < 2) return;
 
       setIsPairsLoading(true);
       const res = await fetchVotesAndGeneratePairs({
