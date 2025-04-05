@@ -113,7 +113,7 @@ const RankingInterface = ({
     preloadImages(currentPairIndex);
   }, [currentPairIndex, pairs, entriesSubset]);
 
-  if (isPairsLoading && entriesSubset.length !== 0) {
+  if (isPairsLoading) {
     return (
       <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin my-24"></div>
     );
