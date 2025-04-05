@@ -376,6 +376,7 @@ function Home() {
             remainingVotes={rankingRemainingVotes[selectedYear]}
             valid={true}
             isPairsLoading={isPairsLoading}
+            isRankingLoading={isLoading}
           />
         </div>
 
