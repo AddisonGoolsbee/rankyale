@@ -125,7 +125,7 @@ const RankingInterface = ({
         {entriesSubset.length !== 0 && (
           <div className="sm:text-lg text-sm text-gray-600 flex flex-col items-center sm:my-6 my-4 sm:mb-8 mb-6">
             {valid ? (
-              <div>Come back tomorrow for more rankings!</div>
+              <div>I'm fixing something right now, please try again in a few hours</div>
             ) : (
               <div>You are unable to rank this category</div>
             )}

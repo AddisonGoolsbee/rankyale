@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { getCollection } from "../utils/api";
+import { getCollection, withTimeout } from "../utils/api";
 import { Entry } from "../utils/types";
 import {
   getAuth,
@@ -155,27 +155,38 @@ function Home() {
       if (!user || filtered.length < 2) return;
 
       setIsPairsLoading(true);
-      const res = await fetchVotesAndGeneratePairs({
-        collection: "students",
-        uid: user.uid,
-        subset: selectedYear,
-      });
-      const randomPairs = res.data as { entry1: number; entry2: number }[];
+      console.log("fetching pairs");
+      try {
+        const res = await withTimeout(
+          fetchVotesAndGeneratePairs({
+            collection: "students",
+            uid: user.uid,
+            subset: selectedYear,
+          }),
+          3000
+        );
+        const randomPairs = res.data as {
+          entry1: number;
+          entry2: number;
+        }[];
+        if (randomPairs.length === 0) {
+          setIsPairsLoading(false);
+          return;
+        }
 
-      if (randomPairs.length === 0) {
+        setRankingPairs((prev) => ({
+          ...prev,
+          [selectedYear]: randomPairs,
+        }));
+        setRankingIndices((prev) => ({
+          ...prev,
+          [selectedYear]: 0,
+        }));
         setIsPairsLoading(false);
-        return;
+      } catch (err) {
+        console.error("Failed to fetch pairs:", err);
+        setIsPairsLoading(false);
       }
-
-      setRankingPairs((prev) => ({
-        ...prev,
-        [selectedYear]: randomPairs,
-      }));
-      setRankingIndices((prev) => ({
-        ...prev,
-        [selectedYear]: 0,
-      }));
-      setIsPairsLoading(false);
     };
 
     updateEntriesForYear();
