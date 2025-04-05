@@ -1,7 +1,6 @@
 // First 24 hours: 284071 votes, 2626 unique users (37% of campus)
 
 import { useEffect, useState } from "react";
-import { withTimeout } from "../utils/api";
 import { Entry } from "../utils/types";
 import {
   getAuth,
@@ -34,6 +33,15 @@ function Home() {
     Juniors: [],
     Seniors: [],
   });
+    const [subsetEntries, setSubsetEntries] = useState<{
+      [key: string]: Entry[];
+    }>({
+      All: [],
+      Freshmen: [],
+      Sophomores: [],
+      Juniors: [],
+      Seniors: [],
+    });
   const [rankingPairs, setRankingPairs] = useState<{
     [key: string]: { entry1: number; entry2: number }[];
   }>({
@@ -134,12 +142,21 @@ function Home() {
   }, [user]);
 
   useEffect(() => {
-    const fetchVotesAndGeneratePairs = httpsCallable(
-      functions,
-      "fetchVotesAndGeneratePairs"
-    );
+    const fetchRandomBuckets = httpsCallable(functions, "fetchRandomBuckets");
+    const getBuckets = async () => {
+      const cached = localStorage.getItem("buckets");
+      if (cached) {
+        return JSON.parse(cached);
+      }
 
-    if (!user || !selectedYear) return;
+      const buckets = await fetchRandomBuckets({ collection: "students" });
+      localStorage.setItem("buckets", JSON.stringify(buckets.data));
+      return buckets.data;
+    };
+
+    const getEntriesFromPairs = httpsCallable(functions, "getEntriesFromPairs");
+
+    if (!user || !selectedYear || subsetEntries[selectedYear].length > 0) return;
 
     const updateEntriesForYear = async () => {
       if (rankingPairs[selectedYear].length > 0) {
@@ -150,25 +167,38 @@ function Home() {
       if (!user || topEntries[selectedYear].length < 2) return;
 
       setIsPairsLoading(true);
-      console.log("fetching pairs");
       try {
-        const res = await withTimeout(
-          fetchVotesAndGeneratePairs({
-            collection: "students",
-            uid: user.uid,
-            subset: selectedYear,
-          }),
-          3000
+        const buckets = await getBuckets();
+        const pairs = buckets[selectedYear] || [];
+        const response = await getEntriesFromPairs({
+          collection: "students",
+          pairs: pairs,
+        });
+        const entries = response.data as { [key: string]: Entry };
+        const entryList = Object.entries(entries).map(([id, data]) => ({
+          ...data,
+          id,
+        }));
+        setSubsetEntries({
+          ...subsetEntries,
+          [selectedYear]: entryList,
+        });
+
+        const idToIndex = Object.fromEntries(
+          entryList.map((entry, index) => [entry.id, index])
         );
-        const randomPairs = res.data as {
-          entry1: number;
-          entry2: number;
-        }[];
+
+        const randomPairs: { entry1: number; entry2: number }[] = pairs.map(
+          (pair: { a: string; b: string }) => ({
+            entry1: idToIndex[pair.a.trim()],
+            entry2: idToIndex[pair.b.trim()],
+          })
+        );
+
         if (randomPairs.length === 0) {
           setIsPairsLoading(false);
           return;
         }
-
         setRankingPairs((prev) => ({
           ...prev,
           [selectedYear]: randomPairs,
@@ -185,7 +215,7 @@ function Home() {
     };
 
     updateEntriesForYear();
-  }, [selectedYear, topEntries, user, classYear, rankingPairs, rankingIndices]);
+  }, [selectedYear, topEntries, user, classYear, rankingPairs, rankingIndices, subsetEntries]);
 
   const handleLogin = async () => {
     const provider = new GoogleAuthProvider();
@@ -218,8 +248,8 @@ function Home() {
     }));
     setCurrentPairIndex(currentPairIndex + 1);
 
-    const entry1 = topEntries[selectedYear][selectedEntries.entry1];
-    const entry2 = topEntries[selectedYear][selectedEntries.entry2];
+    const entry1 = subsetEntries[selectedYear][selectedEntries.entry1];
+    const entry2 = subsetEntries[selectedYear][selectedEntries.entry2];
 
     const expectedScore1 =
       1 / (1 + Math.pow(10, (entry2.score - entry1.score) / 400));
@@ -239,18 +269,31 @@ function Home() {
 
     setTopEntries((prevTopEntries) => {
       const updatedTopEntries = { ...prevTopEntries };
-      for (const year in ["All", selectedYear]) {
-        updatedTopEntries[year] = updatedTopEntries[year].map((entry) => {
-          if (entry.id === entry1.id) return { ...entry, score: score1 };
-          if (entry.id === entry2.id) return { ...entry, score: score2 };
+      for (const year of ["All", selectedYear]) {
+        const list = updatedTopEntries[year] ?? [];
+        let found1 = false;
+        let found2 = false;
+
+        const updatedList = list.map((entry) => {
+          if (entry.id === entry1.id) {
+            found1 = true;
+            return { ...entry, score: score1 };
+          }
+          if (entry.id === entry2.id) {
+            found2 = true;
+            return { ...entry, score: score2 };
+          }
           return entry;
         });
-        updatedTopEntries[year].sort(
-          (a, b) => b.score - a.score
-        );
+
+        if (!found1) updatedList.push({ ...entry1, score: score1 });
+        if (!found2) updatedList.push({ ...entry2, score: score2 });
+
+        updatedTopEntries[year] = updatedList.sort((a, b) => b.score - a.score);
       }
       return updatedTopEntries;
     });
+
 
     try {
       await updateEloRating({
@@ -328,7 +371,7 @@ function Home() {
             key={selectedYear}
             pairs={rankingPairs[selectedYear]}
             currentPairIndex={currentPairIndex}
-            entriesSubset={topEntries[selectedYear]}
+            entriesSubset={subsetEntries[selectedYear]}
             onVote={handleVote}
             remainingVotes={rankingRemainingVotes[selectedYear]}
             valid={true}
