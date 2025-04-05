@@ -10,7 +10,6 @@ export type Entry = {
     year?: number;
     image?: string;
     score: number;
-    popularity: number;
     class_year: number;
 };
 

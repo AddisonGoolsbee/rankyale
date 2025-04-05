@@ -1,5 +1,7 @@
+// First 24 hours: 284071 votes, 2626 unique users (37% of campus)
+
 import { useEffect, useState } from "react";
-import { getCollection, withTimeout } from "../utils/api";
+import { withTimeout } from "../utils/api";
 import { Entry } from "../utils/types";
 import {
   getAuth,
@@ -18,20 +20,20 @@ import BackgroundOrbs from "../components/BackgroundOrbs";
 
 const auth = getAuth();
 
-const yearMap: { [key: string]: number } = {
-  Freshmen: 2028,
-  Sophomores: 2027,
-  Juniors: 2026,
-  Seniors: 2025,
-};
-
 function Home() {
-  const [entries, setEntries] = useState<Entry[]>([]);
-  const [entriesSubset, setEntriesSubset] = useState<Entry[]>([]); // subset of entries based on selected year, not present in non-student categories
   const [user, setUser] = useState<User | null>(null);
   const [classYear, setClassYear] = useState<number | null>(null);
   const [authChecked, setAuthChecked] = useState(false);
   const [selectedYear, setSelectedYear] = useState<string>("All");
+  const [topEntries, setTopEntries] = useState<{
+    [key: string]: Entry[];
+  }>({
+    All: [],
+    Freshmen: [],
+    Sophomores: [],
+    Juniors: [],
+    Seniors: [],
+  });
   const [rankingPairs, setRankingPairs] = useState<{
     [key: string]: { entry1: number; entry2: number }[];
   }>({
@@ -83,6 +85,8 @@ function Home() {
   }, []);
 
   useEffect(() => {
+    const fetchTopEntries = httpsCallable(functions, "fetchTopEntries");
+
     const yearMapReverse = {
       2028: "Freshmen",
       2027: "Sophomores",
@@ -119,12 +123,12 @@ function Home() {
           console.error("Failed to fetch class year:", err);
         }
       };
-      fetchClassYear();
-      getCollection("students").then((data) => {
-        const sorted = data.sort(
-          (a, b) => b.score - a.score || a.name.localeCompare(b.name)
-        );
-        setEntries(sorted);
+      fetchClassYear().then(() => {
+        fetchTopEntries({
+          collection: "students",
+        }).then((res) => {
+          setTopEntries(res.data as { [key: string]: Entry[] });
+        });
       });
     }
   }, [user]);
@@ -138,21 +142,12 @@ function Home() {
     if (!user || !selectedYear) return;
 
     const updateEntriesForYear = async () => {
-      let filtered = entries;
-      if (selectedYear === "All") {
-        setEntriesSubset(filtered);
-      } else {
-        const numericYear = yearMap[selectedYear];
-        filtered = entries.filter((entry) => entry.class_year === numericYear);
-        setEntriesSubset(filtered);
-      }
-
       if (rankingPairs[selectedYear].length > 0) {
         setCurrentPairIndex(rankingIndices[selectedYear] + 1);
         return;
       }
 
-      if (!user || filtered.length < 2) return;
+      if (!user || topEntries[selectedYear].length < 2) return;
 
       setIsPairsLoading(true);
       console.log("fetching pairs");
@@ -190,11 +185,10 @@ function Home() {
     };
 
     updateEntriesForYear();
-  }, [selectedYear, entries, user, classYear, rankingPairs, rankingIndices]);
+  }, [selectedYear, topEntries, user, classYear, rankingPairs, rankingIndices]);
 
   const handleLogin = async () => {
     const provider = new GoogleAuthProvider();
-    // const isMobile = /Mobi|Android/i.test(navigator.userAgent);
     try {
       const result = await signInWithPopup(auth, provider);
 
@@ -224,8 +218,8 @@ function Home() {
     }));
     setCurrentPairIndex(currentPairIndex + 1);
 
-    const entry1 = entriesSubset[selectedEntries.entry1];
-    const entry2 = entriesSubset[selectedEntries.entry2];
+    const entry1 = topEntries[selectedYear][selectedEntries.entry1];
+    const entry2 = topEntries[selectedYear][selectedEntries.entry2];
 
     const expectedScore1 =
       1 / (1 + Math.pow(10, (entry2.score - entry1.score) / 400));
@@ -243,25 +237,19 @@ function Home() {
       score2 += K * (1 - expectedScore2);
     }
 
-    setEntries((prevEntries) => {
-      const updatedEntries = [...prevEntries];
-      const index1 = updatedEntries.findIndex((e) => e.id === entry1.id);
-      const index2 = updatedEntries.findIndex((e) => e.id === entry2.id);
-      if (index1 !== -1) updatedEntries[index1] = { ...entry1, score: score1 };
-      if (index2 !== -1) updatedEntries[index2] = { ...entry2, score: score2 };
-      return updatedEntries.sort(
-        (a, b) => b.score - a.score || a.name.localeCompare(b.name)
-      );
-    });
-
-    setEntriesSubset((prevEntries) => {
-      const updatedEntries = [...prevEntries];
-      updatedEntries[selectedEntries.entry1] = { ...entry1, score: score1 };
-      updatedEntries[selectedEntries.entry2] = { ...entry2, score: score2 };
-      updatedEntries.sort(
-        (a, b) => b.score - a.score || a.name.localeCompare(b.name)
-      );
-      return updatedEntries;
+    setTopEntries((prevTopEntries) => {
+      const updatedTopEntries = { ...prevTopEntries };
+      for (const year in ["All", selectedYear]) {
+        updatedTopEntries[year] = updatedTopEntries[year].map((entry) => {
+          if (entry.id === entry1.id) return { ...entry, score: score1 };
+          if (entry.id === entry2.id) return { ...entry, score: score2 };
+          return entry;
+        });
+        updatedTopEntries[year].sort(
+          (a, b) => b.score - a.score
+        );
+      }
+      return updatedTopEntries;
     });
 
     try {
@@ -306,7 +294,7 @@ function Home() {
     );
   }
 
-  const isLoading = entriesSubset.length === 0;
+  const isLoading = topEntries[selectedYear].length === 0;
 
   return (
     <>
@@ -340,7 +328,7 @@ function Home() {
             key={selectedYear}
             pairs={rankingPairs[selectedYear]}
             currentPairIndex={currentPairIndex}
-            entriesSubset={entriesSubset}
+            entriesSubset={topEntries[selectedYear]}
             onVote={handleVote}
             remainingVotes={rankingRemainingVotes[selectedYear]}
             valid={true}
@@ -355,7 +343,7 @@ function Home() {
             </div>
           ) : (
             <div className="flex flex-col items-center mx-3 sm:mx-0 sm:w-full space-y-3">
-              {entriesSubset.slice(0, 100).map((entry, index) => (
+              {topEntries[selectedYear].slice(0, 100).map((entry, index) => (
                 <div
                   key={entry.email ?? entry.name}
                   className="bg-white/50 backdrop-blur-lg rounded-xl py-2 px-4 flex flex-row justify-between items-center space-x-4 w-full max-w-xl shadow-xs"
@@ -363,9 +351,6 @@ function Home() {
                   <div className="flex flex-row gap-4 text-xl font-medium">
                     <span>{index + 1}</span>
                     <span className="sm:text-xl text-lg">{entry.name}</span>
-                    {/* <span className="text-gray-500 text-base self-center">
-                      score: {Math.floor(entry.score)}
-                    </span> */}
                   </div>
                   <img
                     src={
