@@ -115,6 +115,14 @@ const RankingInterface = ({
     preloadImages(currentPairIndex);
   }, [currentPairIndex, pairs, entriesSubset]);
 
+  if (!valid) {
+    return (
+      <div className="sm:p-6 py-4 w-full text-center relative flex flex-col items-center">
+        <div className="text-lg sm:text-2xl my-4">You are unable to rank people :(</div>
+      </div>
+    )
+  }
+
   if (isPairsLoading && !isRankingLoading) {
     return (
       <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin my-24"></div>

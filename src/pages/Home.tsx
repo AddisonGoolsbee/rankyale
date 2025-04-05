@@ -24,6 +24,7 @@ function Home() {
   const [classYear, setClassYear] = useState<number | null>(null);
   const [authChecked, setAuthChecked] = useState(false);
   const [selectedYear, setSelectedYear] = useState<string>("All");
+  const [banned, setBanned] = useState(false);
   const [topEntries, setTopEntries] = useState<{
     [key: string]: Entry[];
   }>({
@@ -33,15 +34,15 @@ function Home() {
     Juniors: [],
     Seniors: [],
   });
-    const [subsetEntries, setSubsetEntries] = useState<{
-      [key: string]: Entry[];
-    }>({
-      All: [],
-      Freshmen: [],
-      Sophomores: [],
-      Juniors: [],
-      Seniors: [],
-    });
+  const [subsetEntries, setSubsetEntries] = useState<{
+    [key: string]: Entry[];
+  }>({
+    All: [],
+    Freshmen: [],
+    Sophomores: [],
+    Juniors: [],
+    Seniors: [],
+  });
   const [rankingPairs, setRankingPairs] = useState<{
     [key: string]: { entry1: number; entry2: number }[];
   }>({
@@ -110,7 +111,9 @@ function Home() {
           const data = res.data as {
             classYear: number;
             todaysVotes: { [key: string]: number };
+            banned: boolean;
           };
+          setBanned(data.banned);
           setClassYear(data.classYear);
           setSelectedYear(
             yearMapReverse[
@@ -156,7 +159,8 @@ function Home() {
 
     const getEntriesFromPairs = httpsCallable(functions, "getEntriesFromPairs");
 
-    if (!user || !selectedYear || subsetEntries[selectedYear].length > 0) return;
+    if (!user || !selectedYear || subsetEntries[selectedYear].length > 0)
+      return;
 
     const updateEntriesForYear = async () => {
       if (rankingPairs[selectedYear].length > 0) {
@@ -215,7 +219,15 @@ function Home() {
     };
 
     updateEntriesForYear();
-  }, [selectedYear, topEntries, user, classYear, rankingPairs, rankingIndices, subsetEntries]);
+  }, [
+    selectedYear,
+    topEntries,
+    user,
+    classYear,
+    rankingPairs,
+    rankingIndices,
+    subsetEntries,
+  ]);
 
   const handleLogin = async () => {
     const provider = new GoogleAuthProvider();
@@ -294,7 +306,6 @@ function Home() {
       return updatedTopEntries;
     });
 
-
     try {
       await updateEloRating({
         collectionName: "students",
@@ -342,7 +353,7 @@ function Home() {
   return (
     <>
       <BackgroundOrbs />
-      <Navbar handleLogout={handleLogout} />
+      <Navbar handleLogout={handleLogout} banned={banned} setBanned={setBanned} />
       <div className="flex flex-col w-full min-h-[100dvh] z-10 relative">
         <div className="flex flex-col items-center w-full">
           <h1 className="text-4xl sm:text-5xl font-bold mt-4 sm:mt-0 mb-8 sm:mb-8 text-center bg-clip-text z-10">
@@ -374,7 +385,7 @@ function Home() {
             entriesSubset={subsetEntries[selectedYear]}
             onVote={handleVote}
             remainingVotes={rankingRemainingVotes[selectedYear]}
-            valid={true}
+            valid={!banned}
             isPairsLoading={isPairsLoading}
             isRankingLoading={isLoading}
           />
