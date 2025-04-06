@@ -1,6 +1,8 @@
 # RankYale
 
-A toxic website for ranking people at Yale Universtiy. Made with love.
+Rank Yale is a website for ranking the popularity of students at Yale University. Not meant to be taken too seriously, though if you want to opt out from being ranked, there's a button in the header for it.
+
+My name is Addison Goolsbee and I have too much time on my hands.
 
 ## Development
 
