@@ -74,7 +74,7 @@ function Home() {
     Seniors: 0,
   });
 
-  const [currentPairIndex, setCurrentPairIndex] = useState(1);
+  const [currentPairIndex, setCurrentPairIndex] = useState(0);
   const updateEloRating = httpsCallable(functions, "updateEloRating");
   const K = 32;
 
@@ -149,7 +149,6 @@ function Home() {
       new Date().toLocaleDateString("en-CA", { timeZone: "America/New_York" });
 
     const checkDateChange = () => {
-      console.log("Checking date change");
       const current = getTodayEST();
       const stored = localStorage.getItem("bucketsDate");
 
@@ -190,12 +189,12 @@ function Home() {
 
     const getEntriesFromPairs = httpsCallable(functions, "getEntriesFromPairs");
 
-    if (!user || !selectedYear || subsetEntries[selectedYear].length > 0)
+    if (!user || !selectedYear)
       return;
 
     const updateEntriesForYear = async () => {
       if (rankingPairs[selectedYear].length > 0) {
-        setCurrentPairIndex(rankingIndices[selectedYear] + 1);
+        setCurrentPairIndex(rankingIndices[selectedYear]);
         return;
       }
 

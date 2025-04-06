@@ -27,7 +27,7 @@ const Choice = ({ entry, onClick }: { entry: Entry; onClick: () => void }) => {
     setTimeout(() => {
       // setClicked(false);
       setDisabled(false);
-    }, 500);
+    }, 400);
     onClick();
   };
 
@@ -129,7 +129,7 @@ const RankingInterface = ({
     );
   }
 
-  if (pairs.length - currentPairIndex <= 0) {
+  if (remainingVotes - currentPairIndex <= 0) {
     return (
       <>
         {entriesSubset.length !== 0 && (
@@ -151,35 +151,35 @@ const RankingInterface = ({
         <Choice
           entry={
             entriesSubset[
-              pairs[100 - remainingVotes + currentPairIndex + 1]?.entry1
+              pairs[100 - remainingVotes + currentPairIndex]?.entry1
             ]
           }
           onClick={() =>
-            onVote(pairs[100 - remainingVotes + currentPairIndex + 1], 0)
+            onVote(pairs[100 - remainingVotes + currentPairIndex], 0)
           }
         />
         <div className="sm:text-3xl text-xl font-semibold self-center">or</div>
         <Choice
           entry={
             entriesSubset[
-              pairs[100 - remainingVotes + currentPairIndex + 1]?.entry2
+              pairs[100 - remainingVotes + currentPairIndex]?.entry2
             ]
           }
           onClick={() =>
-            onVote(pairs[100 - remainingVotes + currentPairIndex + 1], 1)
+            onVote(pairs[100 - remainingVotes + currentPairIndex], 1)
           }
         />
       </div>
       <button
         onClick={() =>
-          onVote(pairs[100 - remainingVotes + currentPairIndex + 1], 2)
+          onVote(pairs[100 - remainingVotes + currentPairIndex], 2)
         }
         className="sm:px-12 px-8 sm:py-6 py-3 bg-white sm:text-2xl text-base font-semibold rounded-2xl hover:scale-105 active:scale-100 transition duration-200 shadow-lg"
       >
         I'm indifferent
       </button>
       <div className="text-gray-400 my-2 sm:text-base text-sm">
-        {remainingVotes - currentPairIndex + 1} votes left today for this
+        {remainingVotes - currentPairIndex} votes left today for this
         category
       </div>
     </div>
