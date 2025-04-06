@@ -27,10 +27,10 @@ const Choice = ({ entry, onClick }: { entry: Entry; onClick: () => void }) => {
     setTimeout(() => {
       // setClicked(false);
       setDisabled(false);
-    }, 200);
+    }, 500);
     onClick();
   };
-  
+
   useEffect(() => {
     if (entry) {
       const img = new Image();
@@ -49,21 +49,19 @@ const Choice = ({ entry, onClick }: { entry: Entry; onClick: () => void }) => {
       onClick={handleClick}
       className="flex flex-col flex-1 items-center rounded-lg hover:scale-105 transition duration-200 active:scale-100 cursor-pointer"
     >
-      {/* <ConfettiBurst trigger={clicked} /> */}
-      <div className="h-46 min-w-32 sm:h-60 sm:min-w-44 md:h-80 md:min-w-80 w-full flex items-center justify-center rounded-lg overflow-hidden mx-4 relative z-10">
+      <div className="relative aspect-[3/4] w-36 sm:w-48 md:w-60 overflow-hidden mx-4 z-10 rounded-lg flex items-center justify-center bg-white">
         <img
           src={
-            entry.image === "assets/defaultStudent.avif"
+            !entry.image || entry.image === "assets/defaultStudent.avif"
               ? "/defaultStudent.png"
               : entry.image
           }
           alt={entry.name}
           key={entry.image}
-          className="object-contain h-full min-w-32 sm:min-w-44 md:min-w-60 rounded-lg"
-          style={{ display: entry.image ? "block" : "none" }}
+          className="absolute inset-0 w-full h-full object-cover"
         />
-        {!entry.image && <div className="text-gray-400">Loading...</div>}
       </div>
+
       <span
         className={`sm:mt-4 mt-2 font-semibold ${
           entry.name.length > 17
@@ -118,9 +116,11 @@ const RankingInterface = ({
   if (!valid) {
     return (
       <div className="sm:p-6 py-4 w-full text-center relative flex flex-col items-center">
-        <div className="text-lg sm:text-2xl my-4">You are unable to rank people :(</div>
+        <div className="text-lg sm:text-2xl my-4">
+          You are unable to rank people :(
+        </div>
       </div>
-    )
+    );
   }
 
   if (isPairsLoading && !isRankingLoading) {
@@ -149,17 +149,31 @@ const RankingInterface = ({
     <div className="sm:p-6 py-4 w-full text-center relative flex flex-col items-center">
       <div className="flex justify-center flex-row sm:mx-8 sm:mb-6 mb-4">
         <Choice
-          entry={entriesSubset[pairs[100 - remainingVotes + currentPairIndex + 1]?.entry1]}
-          onClick={() => onVote(pairs[100 - remainingVotes + currentPairIndex + 1], 0)}
+          entry={
+            entriesSubset[
+              pairs[100 - remainingVotes + currentPairIndex + 1]?.entry1
+            ]
+          }
+          onClick={() =>
+            onVote(pairs[100 - remainingVotes + currentPairIndex + 1], 0)
+          }
         />
         <div className="sm:text-3xl text-xl font-semibold self-center">or</div>
         <Choice
-          entry={entriesSubset[pairs[100 - remainingVotes + currentPairIndex + 1]?.entry2]}
-          onClick={() => onVote(pairs[100 - remainingVotes + currentPairIndex + 1], 1)}
+          entry={
+            entriesSubset[
+              pairs[100 - remainingVotes + currentPairIndex + 1]?.entry2
+            ]
+          }
+          onClick={() =>
+            onVote(pairs[100 - remainingVotes + currentPairIndex + 1], 1)
+          }
         />
       </div>
       <button
-        onClick={() => onVote(pairs[100 - remainingVotes + currentPairIndex + 1], 2)}
+        onClick={() =>
+          onVote(pairs[100 - remainingVotes + currentPairIndex + 1], 2)
+        }
         className="sm:px-12 px-8 sm:py-6 py-3 bg-white sm:text-2xl text-base font-semibold rounded-2xl hover:scale-105 active:scale-100 transition duration-200 shadow-lg"
       >
         I'm indifferent

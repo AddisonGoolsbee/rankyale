@@ -25,6 +25,6 @@ if (typeof window !== 'undefined') {
 export { analytics };
 
 if (process.env.NODE_ENV === "development") {
-    connectFunctionsEmulator(functions, "127.0.0.1", 5001);
-    connectFirestoreEmulator(db, "127.0.0.1", 8080);
+    connectFunctionsEmulator(functions, "172.27.69.26", 5001);
+    connectFirestoreEmulator(db, "172.27.69.26", 8080);
 }
