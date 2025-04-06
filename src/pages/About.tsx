@@ -17,9 +17,8 @@ const About: FC = () => (
         <div className="flex flex-col justify-center items-center text-base sm:text-xl max-w-xl mx-auto gap-8 my-8">
           <p>
             Rank Yale is a website for ranking the popularity of Yale students.
-            Don't take the rankings too seriously, though! If you want to opt
-            out from being ranked, there's a button in the header for it, though
-            do note that this will prevent you from voting.
+            Not meant to be taken too seriously. If you want to opt out
+            from being ranked, there's a button in the header for it.
           </p>
           <p>
             My name is Addison Goolsbee and I have too much time on my hands.
