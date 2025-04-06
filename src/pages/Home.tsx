@@ -145,15 +145,46 @@ function Home() {
   }, [user]);
 
   useEffect(() => {
+    const getTodayEST = () =>
+      new Date().toLocaleDateString("en-CA", { timeZone: "America/New_York" });
+
+    const checkDateChange = () => {
+      console.log("Checking date change");
+      const current = getTodayEST();
+      const stored = localStorage.getItem("bucketsDate");
+
+      if (stored && stored !== current) {
+        console.log("Date changed. Reloading...");
+        localStorage.removeItem("buckets");
+        localStorage.removeItem("bucketsDate");
+        window.location.reload();
+      }
+    };
+
+    const interval = setInterval(checkDateChange, 60 * 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    const getTodayEST = (): string => {
+      return new Date().toLocaleDateString("en-CA", {
+        timeZone: "America/New_York",
+      });
+    };
+
     const fetchRandomBuckets = httpsCallable(functions, "fetchRandomBuckets");
     const getBuckets = async () => {
       const cached = localStorage.getItem("buckets");
-      if (cached) {
+      const cachedDate = localStorage.getItem("bucketsDate");
+      const today = getTodayEST();
+
+      if (cached && cachedDate === today) {
         return JSON.parse(cached);
       }
 
       const buckets = await fetchRandomBuckets({ collection: "students" });
       localStorage.setItem("buckets", JSON.stringify(buckets.data));
+      localStorage.setItem("bucketsDate", today);
       return buckets.data;
     };
 
@@ -354,7 +385,11 @@ function Home() {
   return (
     <>
       <BackgroundOrbs />
-      <Navbar handleLogout={handleLogout} banned={banned} setBanned={setBanned} />
+      <Navbar
+        handleLogout={handleLogout}
+        banned={banned}
+        setBanned={setBanned}
+      />
       <div className="flex flex-col w-full min-h-[100dvh] z-10 relative">
         <div className="flex flex-col items-center w-full">
           <h1 className="text-4xl sm:text-5xl font-bold mt-4 sm:mt-0 mb-8 sm:mb-8 text-center bg-clip-text z-10">
