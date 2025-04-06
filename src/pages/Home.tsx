@@ -189,8 +189,7 @@ function Home() {
 
     const getEntriesFromPairs = httpsCallable(functions, "getEntriesFromPairs");
 
-    if (!user || !selectedYear)
-      return;
+    if (!user || !selectedYear) return;
 
     const updateEntriesForYear = async () => {
       if (rankingPairs[selectedYear].length > 0) {
@@ -381,6 +380,20 @@ function Home() {
 
   const isLoading = topEntries[selectedYear].length === 0;
 
+  const getDaysLeft = () => {
+    const now = new Date();
+    const estNow = new Date(
+      now.toLocaleString("en-US", { timeZone: "America/New_York" })
+    );
+
+    const deadline = new Date("2025-04-11T00:00:00-04:00"); // midnight at end of 4/10 EST
+    const msPerDay = 1000 * 60 * 60 * 24;
+
+    const diff = deadline.getTime() - estNow.getTime();
+    return Math.max(0, Math.ceil(diff / msPerDay));
+  };
+
+
   return (
     <>
       <BackgroundOrbs />
@@ -389,9 +402,13 @@ function Home() {
         banned={banned}
         setBanned={setBanned}
       />
+      <div className="bg-[#bbf] text-gray-800 text-center font-semibold py-2 px-4 rounded-md shadow-md mx-auto w-fit text-base sm:text-xl">
+        Only {getDaysLeft()} days left to vote!
+      </div>
+
       <div className="flex flex-col w-full min-h-[100dvh] z-10 relative">
         <div className="flex flex-col items-center w-full">
-          <h1 className="text-4xl sm:text-5xl font-bold mt-4 sm:mt-0 mb-8 sm:mb-8 text-center bg-clip-text z-10">
+          <h1 className="text-[2.1rem] leading-tight sm:text-5xl font-bold mt-3 sm:mt-4 mb-4 sm:mb-8 text-center bg-clip-text z-10">
             Who is the Most Popular Student?
           </h1>
           {!isLoading && (
