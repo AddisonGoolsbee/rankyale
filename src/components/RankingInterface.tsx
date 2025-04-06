@@ -149,17 +149,17 @@ const RankingInterface = ({
     <div className="sm:p-6 py-4 w-full text-center relative flex flex-col items-center">
       <div className="flex justify-center flex-row sm:mx-8 sm:mb-6 mb-4">
         <Choice
-          entry={entriesSubset[pairs[currentPairIndex - 1]?.entry1]}
-          onClick={() => onVote(pairs[currentPairIndex - 1], 0)}
+          entry={entriesSubset[pairs[100 - remainingVotes + currentPairIndex + 1]?.entry1]}
+          onClick={() => onVote(pairs[100 - remainingVotes + currentPairIndex + 1], 0)}
         />
         <div className="sm:text-3xl text-xl font-semibold self-center">or</div>
         <Choice
-          entry={entriesSubset[pairs[currentPairIndex - 1]?.entry2]}
-          onClick={() => onVote(pairs[currentPairIndex - 1], 1)}
+          entry={entriesSubset[pairs[100 - remainingVotes + currentPairIndex + 1]?.entry2]}
+          onClick={() => onVote(pairs[100 - remainingVotes + currentPairIndex + 1], 1)}
         />
       </div>
       <button
-        onClick={() => onVote(pairs[currentPairIndex - 1], 2)}
+        onClick={() => onVote(pairs[100 - remainingVotes + currentPairIndex + 1], 2)}
         className="sm:px-12 px-8 sm:py-6 py-3 bg-white sm:text-2xl text-base font-semibold rounded-2xl hover:scale-105 active:scale-100 transition duration-200 shadow-lg"
       >
         I'm indifferent

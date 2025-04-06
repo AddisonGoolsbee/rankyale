@@ -307,13 +307,14 @@ function Home() {
     });
 
     try {
-      await updateEloRating({
+      const res = await updateEloRating({
         collectionName: "students",
         entry1Id: entry1.id,
         entry2Id: entry2.id,
         mode: mode,
         subcategory: selectedYear,
       });
+      console.log(res);
     } catch (error) {
       console.error("Error calling updateEloRating:", error);
     }
