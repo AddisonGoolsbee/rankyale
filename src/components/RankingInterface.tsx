@@ -123,7 +123,11 @@ const RankingInterface = ({
     );
   }
 
-  if (isPairsLoading && !isRankingLoading) {
+  if (isRankingLoading) {
+    return;
+  }
+
+  if (isPairsLoading) {
     return (
       <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin my-24"></div>
     );
@@ -179,8 +183,7 @@ const RankingInterface = ({
         I'm indifferent
       </button>
       <div className="text-gray-400 my-2 sm:text-base text-sm">
-        {remainingVotes - currentPairIndex} votes left today for this
-        category
+        {remainingVotes - currentPairIndex} votes left today for this category
       </div>
     </div>
   );

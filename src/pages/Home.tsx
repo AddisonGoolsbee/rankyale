@@ -349,6 +349,19 @@ function Home() {
     }
   };
 
+  const getDaysLeft = () => {
+    const now = new Date();
+    const estNow = new Date(
+      now.toLocaleString("en-US", { timeZone: "America/New_York" })
+    );
+
+    const deadline = new Date("2025-04-11T00:00:00-04:00"); // midnight at end of 4/10 EST
+    const msPerDay = 1000 * 60 * 60 * 24;
+
+    const diff = deadline.getTime() - estNow.getTime();
+    return Math.max(0, Math.ceil(diff / msPerDay));
+  };
+
   if (!authChecked) {
     return (
       <div className="relative flex items-center justify-center min-h-[100dvh] bg-gray-100">
@@ -366,7 +379,8 @@ function Home() {
           RANKYALE
         </div>
         <div className="text-lg sm:text-xl italic font-light mx-10 text-center z-10">
-          Who is the most popular student?
+          Who is the most popular student? {getDaysLeft()} days left to find
+          out.
         </div>
         <button
           onClick={handleLogin}
@@ -379,20 +393,6 @@ function Home() {
   }
 
   const isLoading = topEntries[selectedYear].length === 0;
-
-  const getDaysLeft = () => {
-    const now = new Date();
-    const estNow = new Date(
-      now.toLocaleString("en-US", { timeZone: "America/New_York" })
-    );
-
-    const deadline = new Date("2025-04-11T00:00:00-04:00"); // midnight at end of 4/10 EST
-    const msPerDay = 1000 * 60 * 60 * 24;
-
-    const diff = deadline.getTime() - estNow.getTime();
-    return Math.max(0, Math.ceil(diff / msPerDay));
-  };
-
 
   return (
     <>
