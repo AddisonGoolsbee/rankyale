@@ -150,12 +150,12 @@ function Home() {
 
     const checkDateChange = () => {
       const current = getTodayEST();
-      const stored = localStorage.getItem("bucketsDate");
+      const stored = localStorage.getItem("bucketsDate2");
 
       if (stored && stored !== current) {
         console.log("Date changed. Reloading...");
-        localStorage.removeItem("buckets");
-        localStorage.removeItem("bucketsDate");
+        localStorage.removeItem("buckets2");
+        localStorage.removeItem("bucketsDate2");
         window.location.reload();
       }
     };
@@ -173,8 +173,8 @@ function Home() {
 
     const fetchRandomBuckets = httpsCallable(functions, "fetchRandomBuckets");
     const getBuckets = async () => {
-      const cached = localStorage.getItem("buckets");
-      const cachedDate = localStorage.getItem("bucketsDate");
+      const cached = localStorage.getItem("buckets2");
+      const cachedDate = localStorage.getItem("bucketsDate2");
       const today = getTodayEST();
 
       if (cached && cachedDate === today) {
@@ -182,8 +182,8 @@ function Home() {
       }
 
       const buckets = await fetchRandomBuckets({ collection: "students" });
-      localStorage.setItem("buckets", JSON.stringify(buckets.data));
-      localStorage.setItem("bucketsDate", today);
+      localStorage.setItem("buckets2", JSON.stringify(buckets.data));
+      localStorage.setItem("bucketsDate2", today);
       return buckets.data;
     };
 
