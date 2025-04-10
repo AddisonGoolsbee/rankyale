@@ -14,12 +14,20 @@ type RankingInterfaceProps = {
   valid: boolean;
   isPairsLoading: boolean;
   isRankingLoading: boolean;
+  isSandwich: boolean;
 };
 
-const Choice = ({ entry, onClick }: { entry: Entry; onClick: () => void }) => {
+const Choice = ({
+  entry,
+  onClick,
+  isSandwich,
+}: {
+  entry: Entry;
+  onClick: () => void;
+  isSandwich: boolean;
+}) => {
   // const [clicked, setClicked] = useState(false);
   const [disabled, setDisabled] = useState(false);
-
   const handleClick = () => {
     if (disabled) return;
     // setClicked(true);
@@ -49,16 +57,20 @@ const Choice = ({ entry, onClick }: { entry: Entry; onClick: () => void }) => {
       onClick={handleClick}
       className="flex flex-col flex-1 items-center rounded-lg hover:scale-105 transition duration-200 active:scale-100 cursor-pointer"
     >
-      <div className="relative aspect-[3/4] w-36 sm:w-48 md:w-60 overflow-hidden mx-4 z-10 rounded-lg flex items-center justify-center bg-white">
+      <div className="relative aspect-[3/4] w-36 sm:w-48 md:w-60 overflow-hidden mx-4 z-10 rounded-lg flex items-center justify-center">
         <img
           src={
-            !entry.image || entry.image === "assets/defaultStudent.avif"
+            isSandwich
+              ? "/sandwich.gif"
+              : !entry.image || entry.image === "assets/defaultStudent.avif"
               ? "/defaultStudent.png"
               : entry.image
           }
           alt={entry.name}
           key={entry.image}
-          className="absolute inset-0 w-full h-full object-cover"
+          className={`absolute inset-0 w-full h-full ${
+            isSandwich ? "object-contain" : "object-cover"
+          }`}
         />
       </div>
 
@@ -84,6 +96,7 @@ const RankingInterface = ({
   valid,
   isPairsLoading,
   isRankingLoading,
+  isSandwich,
 }: RankingInterfaceProps) => {
   useEffect(() => {
     const preloadImages = (index: number) => {
@@ -161,6 +174,7 @@ const RankingInterface = ({
           onClick={() =>
             onVote(pairs[100 - remainingVotes + currentPairIndex], 0)
           }
+          isSandwich={isSandwich}
         />
         <div className="sm:text-3xl text-xl font-semibold self-center">or</div>
         <Choice
@@ -172,6 +186,7 @@ const RankingInterface = ({
           onClick={() =>
             onVote(pairs[100 - remainingVotes + currentPairIndex], 1)
           }
+          isSandwich={isSandwich}
         />
       </div>
       <button

@@ -7,9 +7,17 @@ interface NavbarProps {
   handleLogout: () => Promise<void>;
   banned?: boolean;
   setBanned?: (banned: boolean) => void;
+  isSandwich?: boolean;
+  setIsSandwich?: (isSandwich: boolean) => void;
 }
 
-const Navbar: FC<NavbarProps> = ({ handleLogout, banned, setBanned }) => {
+const Navbar: FC<NavbarProps> = ({
+  handleLogout,
+  banned,
+  setBanned,
+  isSandwich,
+  setIsSandwich,
+}) => {
   const [isOpen, setIsOpen] = useState(false);
   const [showModal, setShowModal] = useState(false);
 
@@ -56,6 +64,12 @@ const Navbar: FC<NavbarProps> = ({ handleLogout, banned, setBanned }) => {
             >
               About
             </Link>
+            <button
+              className="relative after:absolute after:bottom-0 after:left-0 after:h-[2px] after:w-0 after:bg-current after:transition-all after:duration-300 hover:after:w-full"
+              onClick={() => setIsSandwich?.(!isSandwich)}
+            >
+              Sandwich
+            </button>
             {!banned && (
               <button
                 onClick={() => setShowModal(true)}
@@ -83,16 +97,27 @@ const Navbar: FC<NavbarProps> = ({ handleLogout, banned, setBanned }) => {
 
         {/* Mobile nav dropdown */}
         {isOpen && (
-          <div className="sm:hidden flex flex-col items-end gap-4 pr-6 pb-4 text-base font-semibold animate-fade-in-down">
-            <Link to="/about" onClick={() => setIsOpen(false)}>
+          <div className="sm:hidden flex flex-col items-end pr-6 pb-4 -mt-2 text-base font-semibold animate-fade-in-down">
+            <Link
+              to="/about"
+              onClick={() => setIsOpen(false)}
+              className="p-2 pl-8"
+            >
               About
             </Link>
+            <button
+              className="relative after:absolute after:bottom-0 after:left-0 after:h-[2px] after:w-0 after:bg-current after:transition-all after:duration-300 hover:after:w-full p-2 pl-8"
+              onClick={() => setIsSandwich?.(!isSandwich)}
+            >
+              Sandwich
+            </button>
             {!banned && (
               <button
                 onClick={() => {
                   setIsOpen(false);
                   setShowModal(true);
                 }}
+                className="p-2 pl-8"
               >
                 Opt Out
               </button>
@@ -102,6 +127,7 @@ const Navbar: FC<NavbarProps> = ({ handleLogout, banned, setBanned }) => {
               target="_blank"
               rel="noopener noreferrer"
               onClick={() => setIsOpen(false)}
+              className="p-2 pl-8"
             >
               Feedback
             </a>
@@ -110,7 +136,7 @@ const Navbar: FC<NavbarProps> = ({ handleLogout, banned, setBanned }) => {
                 setIsOpen(false);
                 handleLogout();
               }}
-              className="text-red-600"
+              className="text-red-600 p-2 pl-8"
             >
               Sign Out
             </button>

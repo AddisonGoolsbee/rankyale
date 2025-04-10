@@ -75,6 +75,7 @@ function Home() {
   });
 
   const [currentPairIndex, setCurrentPairIndex] = useState(0);
+  const [isSandwich, setIsSandwich] = useState(false);
   const updateEloRating = httpsCallable(functions, "updateEloRating");
   const K = 32;
 
@@ -401,9 +402,11 @@ function Home() {
         handleLogout={handleLogout}
         banned={banned}
         setBanned={setBanned}
+        isSandwich={isSandwich}
+        setIsSandwich={setIsSandwich}
       />
       <div className="bg-[#bbf] text-gray-800 text-center font-semibold py-2 px-4 rounded-md shadow-md mx-auto w-fit text-base sm:text-xl">
-        Only {getDaysLeft()} days left to vote!
+        Only 1 day left to vote!
       </div>
 
       <div className="flex flex-col w-full min-h-[100dvh] z-10 relative">
@@ -440,6 +443,7 @@ function Home() {
             valid={!banned}
             isPairsLoading={isPairsLoading}
             isRankingLoading={isLoading}
+            isSandwich={isSandwich}
           />
         </div>
 
@@ -461,7 +465,9 @@ function Home() {
                   </div>
                   <img
                     src={
-                      entry.image === "assets/defaultStudent.avif"
+                      isSandwich
+                        ? "/sandwich.gif"
+                        : entry.image === "assets/defaultStudent.avif"
                         ? "/defaultStudent.png"
                         : entry.image
                     }
